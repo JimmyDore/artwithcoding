@@ -13,6 +13,18 @@ import random
 from typing import Callable, Tuple, List, Optional
 from enum import Enum
 import colorsys
+import threading
+import queue
+
+# Audio processing imports (optional - will gracefully degrade if not available)
+try:
+    import pyaudio
+    import scipy.signal
+    AUDIO_AVAILABLE = True
+except ImportError:
+    AUDIO_AVAILABLE = False
+    print("Audio libraries not available. Install pyaudio and scipy for music reactivity:")
+    print("pip install pyaudio scipy")
 
 
 class DistortionType(Enum):
@@ -37,6 +49,181 @@ class ColorScheme(Enum):
     FOREST = "forest"
 
 
+class AudioAnalyzer:
+    """
+    Analyseur audio en temps réel pour la réactivité musicale.
+    
+    Capture l'audio du microphone et extrait les caractéristiques fréquentielles
+    pour contrôler les paramètres visuels.
+    """
+    
+    def __init__(self, sample_rate: int = 44100, chunk_size: int = 1024):
+        """
+        Initialise l'analyseur audio.
+        
+        Args:
+            sample_rate: Fréquence d'échantillonnage audio
+            chunk_size: Taille des blocs audio à analyser
+        """
+        self.sample_rate = sample_rate
+        self.chunk_size = chunk_size
+        self.audio_queue = queue.Queue()
+        self.is_running = False
+        self.audio_thread = None
+        
+        # Paramètres d'analyse
+        self.bass_range = (20, 250)      # Hz
+        self.mid_range = (250, 4000)     # Hz  
+        self.high_range = (4000, 20000)  # Hz
+        
+        # Variables de sortie (thread-safe)
+        self.bass_level = 0.0
+        self.mid_level = 0.0
+        self.high_level = 0.0
+        self.overall_volume = 0.0
+        self.beat_detected = False
+        
+        # Historique pour la détection de beats
+        self.volume_history = []
+        self.beat_threshold = 1.3
+        self.beat_cooldown = 0
+        
+        # Lissage des valeurs
+        self.smoothing_factor = 0.8
+        
+        # PyAudio setup
+        if AUDIO_AVAILABLE:
+            self.pa = pyaudio.PyAudio()
+            self.stream = None
+        else:
+            self.pa = None
+            self.stream = None
+    
+    def start_audio_capture(self):
+        """Démarre la capture audio en arrière-plan"""
+        if not AUDIO_AVAILABLE:
+            print("Audio non disponible - mode silencieux")
+            return False
+            
+        try:
+            self.stream = self.pa.open(
+                format=pyaudio.paFloat32,
+                channels=1,
+                rate=self.sample_rate,
+                input=True,
+                frames_per_buffer=self.chunk_size,
+                stream_callback=self._audio_callback
+            )
+            
+            self.is_running = True
+            self.audio_thread = threading.Thread(target=self._process_audio, daemon=True)
+            self.audio_thread.start()
+            
+            print("🎵 Capture audio démarrée - Votre art réagit maintenant à la musique!")
+            return True
+            
+        except Exception as e:
+            print(f"Erreur audio: {e}")
+            return False
+    
+    def stop_audio_capture(self):
+        """Arrête la capture audio"""
+        self.is_running = False
+        
+        if self.stream:
+            self.stream.stop_stream()
+            self.stream.close()
+        
+        if self.pa:
+            self.pa.terminate()
+    
+    def _audio_callback(self, in_data, frame_count, time_info, status):
+        """Callback pour recevoir les données audio"""
+        try:
+            audio_data = np.frombuffer(in_data, dtype=np.float32)
+            self.audio_queue.put(audio_data, block=False)
+        except queue.Full:
+            pass  # Skip if queue is full
+        return (None, pyaudio.paContinue)
+    
+    def _process_audio(self):
+        """Thread principal de traitement audio"""
+        while self.is_running:
+            try:
+                # Récupérer les données audio
+                audio_data = self.audio_queue.get(timeout=0.1)
+                
+                # Calculer la FFT
+                fft = np.fft.rfft(audio_data)
+                magnitude = np.abs(fft)
+                
+                # Créer l'échelle de fréquences
+                freqs = np.fft.rfftfreq(len(audio_data), 1/self.sample_rate)
+                
+                # Extraire les niveaux par bande de fréquence
+                bass_indices = np.where((freqs >= self.bass_range[0]) & (freqs <= self.bass_range[1]))
+                mid_indices = np.where((freqs >= self.mid_range[0]) & (freqs <= self.mid_range[1]))
+                high_indices = np.where((freqs >= self.high_range[0]) & (freqs <= self.high_range[1]))
+                
+                # Calculer les niveaux moyens (avec lissage)
+                bass_new = np.mean(magnitude[bass_indices]) if len(bass_indices[0]) > 0 else 0
+                mid_new = np.mean(magnitude[mid_indices]) if len(mid_indices[0]) > 0 else 0
+                high_new = np.mean(magnitude[high_indices]) if len(high_indices[0]) > 0 else 0
+                volume_new = np.mean(magnitude)
+                
+                # Appliquer le lissage
+                self.bass_level = self.bass_level * self.smoothing_factor + bass_new * (1 - self.smoothing_factor)
+                self.mid_level = self.mid_level * self.smoothing_factor + mid_new * (1 - self.smoothing_factor)
+                self.high_level = self.high_level * self.smoothing_factor + high_new * (1 - self.smoothing_factor)
+                self.overall_volume = self.overall_volume * self.smoothing_factor + volume_new * (1 - self.smoothing_factor)
+                
+                # Détection de beats
+                self._detect_beat(volume_new)
+                
+            except queue.Empty:
+                continue
+            except Exception as e:
+                print(f"Erreur traitement audio: {e}")
+                continue
+    
+    def _detect_beat(self, current_volume):
+        """Détecte les beats dans l'audio"""
+        self.volume_history.append(current_volume)
+        
+        # Garder seulement les 20 dernières valeurs
+        if len(self.volume_history) > 20:
+            self.volume_history.pop(0)
+        
+        # Réduire le cooldown
+        if self.beat_cooldown > 0:
+            self.beat_cooldown -= 1
+        
+        # Détecter un beat si le volume actuel dépasse significativement la moyenne récente
+        if len(self.volume_history) >= 10 and self.beat_cooldown == 0:
+            recent_avg = np.mean(self.volume_history[:-5])  # Moyenne des valeurs récentes
+            if current_volume > recent_avg * self.beat_threshold:
+                self.beat_detected = True
+                self.beat_cooldown = 10  # Cooldown pour éviter les faux positifs
+                return
+        
+        self.beat_detected = False
+    
+    def get_audio_features(self) -> dict:
+        """
+        Retourne les caractéristiques audio actuelles.
+        
+        Returns:
+            Dict avec bass_level, mid_level, high_level, overall_volume, beat_detected
+        """
+        return {
+            'bass_level': min(self.bass_level * 100, 1.0),      # Normalisé 0-1
+            'mid_level': min(self.mid_level * 50, 1.0),         # Normalisé 0-1  
+            'high_level': min(self.high_level * 20, 1.0),       # Normalisé 0-1
+            'overall_volume': min(self.overall_volume * 30, 1.0), # Normalisé 0-1
+            'beat_detected': self.beat_detected
+        }
+
+
 class DeformedGrid:
     """
     Générateur de grille de carrés déformés géométriquement.
@@ -54,7 +241,8 @@ class DeformedGrid:
                  background_color: Tuple[int, int, int] = (20, 20, 30),
                  square_color: Tuple[int, int, int] = (255, 255, 255),
                  color_scheme: str = "monochrome",
-                 color_animation: bool = False):
+                 color_animation: bool = False,
+                 audio_reactive: bool = False):
         """
         Initialise la grille déformée.
         
@@ -68,6 +256,7 @@ class DeformedGrid:
             square_color: Couleur des carrés RGB (utilisée pour monochrome)
             color_scheme: Schéma de couleurs ("monochrome", "gradient", "rainbow", etc.)
             color_animation: Si True, les couleurs changent dans le temps
+            audio_reactive: Si True, réagit à l'audio en temps réel
         """
         self.dimension = dimension
         self.cell_size = cell_size
@@ -78,6 +267,11 @@ class DeformedGrid:
         self.square_color = square_color
         self.color_scheme = color_scheme
         self.color_animation = color_animation
+        self.audio_reactive = audio_reactive
+        
+        # Audio analyzer
+        self.audio_analyzer = AudioAnalyzer() if audio_reactive else None
+        self.base_distortion_strength = distortion_strength  # Sauvegarde de l'intensité de base
         
         # Calcul automatique du décalage pour centrer la grille
         grid_total_size = dimension * cell_size
@@ -107,6 +301,10 @@ class DeformedGrid:
         
         # Génération des couleurs de base pour chaque carré
         self._generate_base_colors()
+        
+        # Démarrage de l'analyse audio si activée
+        if self.audio_reactive and self.audio_analyzer:
+            self.audio_analyzer.start_audio_capture()
     
     def _generate_base_positions(self):
         """Génère les positions de base de la grille régulière"""
@@ -264,17 +462,43 @@ class DeformedGrid:
         Returns:
             Couleur animée ou couleur de base si animation désactivée
         """
-        if not self.color_animation:
+        if not self.color_animation and not self.audio_reactive:
             return base_color
-            
-        # Animation de luminosité pulsante
-        pulse = math.sin(self.time * 2 + position_index * 0.1) * 0.2 + 1.0
-        pulse = max(0.5, min(1.5, pulse))  # Limite entre 0.5 et 1.5
         
         r, g, b = base_color
-        r = int(min(255, r * pulse))
-        g = int(min(255, g * pulse))
-        b = int(min(255, b * pulse))
+        
+        # Animation normale si pas d'audio
+        if not self.audio_reactive or not self.audio_analyzer:
+            pulse = math.sin(self.time * 2 + position_index * 0.1) * 0.2 + 1.0
+            pulse = max(0.5, min(1.5, pulse))
+            r = int(min(255, r * pulse))
+            g = int(min(255, g * pulse))
+            b = int(min(255, b * pulse))
+            return (r, g, b)
+        
+        # Animation réactive à l'audio
+        audio_features = self.audio_analyzer.get_audio_features()
+        
+        # Beat detection - flash blanc sur les beats
+        if audio_features['beat_detected']:
+            flash_intensity = 0.7
+            r = int(min(255, r + (255 - r) * flash_intensity))
+            g = int(min(255, g + (255 - g) * flash_intensity))
+            b = int(min(255, b + (255 - b) * flash_intensity))
+        
+        # Hautes fréquences - augmentent la luminosité
+        high_boost = 1.0 + audio_features['high_level'] * 0.5
+        r = int(min(255, r * high_boost))
+        g = int(min(255, g * high_boost))
+        b = int(min(255, b * high_boost))
+        
+        # Moyennes fréquences - rotation de teinte
+        if audio_features['mid_level'] > 0.1:
+            # Convertir en HSV pour rotation de teinte
+            h, s, v = colorsys.rgb_to_hsv(r/255.0, g/255.0, b/255.0)
+            h = (h + audio_features['mid_level'] * 0.3) % 1.0
+            r, g, b = colorsys.hsv_to_rgb(h, s, v)
+            r, g, b = int(r * 255), int(g * 255), int(b * 255)
         
         return (r, g, b)
     
@@ -417,10 +641,22 @@ class DeformedGrid:
         for corner_x, corner_y in corners:
             new_x = corner_x * cos_r - corner_y * sin_r + x
             new_y = corner_x * sin_r + corner_y * cos_r + y
-            rotated_corners.append((new_x, new_y))
+            
+            # Validation des coordonnées (éviter NaN/Inf)
+            if math.isfinite(new_x) and math.isfinite(new_y):
+                rotated_corners.append((int(new_x), int(new_y)))
+            else:
+                # Fallback vers la position centrale si coordonnées invalides
+                rotated_corners.append((int(x), int(y)))
         
-        # Dessin du polygone
-        pygame.draw.polygon(surface, color, rotated_corners)
+        # Dessin du polygone (seulement si on a des coordonnées valides)
+        if len(rotated_corners) >= 3:
+            try:
+                pygame.draw.polygon(surface, color, rotated_corners)
+            except (TypeError, ValueError):
+                # Fallback: dessiner un petit rectangle centré
+                rect = pygame.Rect(int(x) - 2, int(y) - 2, 4, 4)
+                pygame.draw.rect(surface, color, rect)
     
     def render(self):
         """Rend la grille déformée sur l'écran"""
@@ -442,6 +678,18 @@ class DeformedGrid:
     def update(self):
         """Met à jour l'animation"""
         self.time += self.animation_speed
+        
+        # Mise à jour de l'intensité de distorsion basée sur l'audio
+        if self.audio_reactive and self.audio_analyzer:
+            audio_features = self.audio_analyzer.get_audio_features()
+            
+            # Les basses fréquences contrôlent l'intensité de distorsion
+            bass_boost = min(audio_features['bass_level'] * 0.8, 1.0)  # Limiter à 1.0
+            self.distortion_strength = min(self.base_distortion_strength + bass_boost, 2.0)  # Max 2.0
+            
+            # Le volume global contrôle la vitesse d'animation
+            volume_speed = 1.0 + min(audio_features['overall_volume'] * 2.0, 3.0)  # Max 4x speed
+            self.animation_speed = max(0.005, min(0.02 * volume_speed, 0.1))  # Entre 0.005 et 0.1
     
     def run_interactive(self):
         """Lance la boucle interactive principale"""
@@ -453,6 +701,7 @@ class DeformedGrid:
         print("- SPACE: Changer le type de distorsion")
         print("- C: Changer le schéma de couleurs")
         print("- A: Activer/désactiver l'animation des couleurs")
+        print("- M: Activer/désactiver la réactivité audio")
         print("- +/-: Ajuster l'intensité de distorsion")
         print("- R: Régénérer les paramètres aléatoires")
         print("- S: Sauvegarder l'image")
@@ -491,6 +740,21 @@ class DeformedGrid:
                         self.color_animation = not self.color_animation
                         status = "activée" if self.color_animation else "désactivée"
                         print(f"Animation des couleurs: {status}")
+                    elif event.key == pygame.K_m:
+                        # Activer/désactiver la réactivité audio
+                        if not AUDIO_AVAILABLE:
+                            print("Audio non disponible - installez pyaudio et scipy")
+                        else:
+                            self.audio_reactive = not self.audio_reactive
+                            if self.audio_reactive:
+                                if not self.audio_analyzer:
+                                    self.audio_analyzer = AudioAnalyzer()
+                                self.audio_analyzer.start_audio_capture()
+                                print("🎵 Mode audio-réactif activé!")
+                            else:
+                                if self.audio_analyzer:
+                                    self.audio_analyzer.stop_audio_capture()
+                                print("🔇 Mode audio-réactif désactivé")
                     elif event.key == pygame.K_PLUS or event.key == pygame.K_EQUALS:
                         # Augmenter l'intensité
                         self.distortion_strength = min(1.0, self.distortion_strength + 0.1)
@@ -517,6 +781,10 @@ class DeformedGrid:
             self.update()
             self.render()
             self.clock.tick(60)  # 60 FPS
+        
+        # Cleanup audio
+        if self.audio_analyzer:
+            self.audio_analyzer.stop_audio_capture()
         
         pygame.quit()
     
@@ -553,6 +821,7 @@ def create_deformed_grid(dimension: int = 64,
                         distortion_fn: str = "random",
                         color_scheme: str = "rainbow",
                         color_animation: bool = False,
+                        audio_reactive: bool = False,
                         fullscreen: bool = False) -> DeformedGrid:
     """
     Crée une grille déformée avec des paramètres simples.
@@ -564,6 +833,7 @@ def create_deformed_grid(dimension: int = 64,
         distortion_fn: Type de distorsion ("random", "sine", "perlin", "circular")
         color_scheme: Schéma de couleurs ("monochrome", "gradient", "rainbow", etc.)
         color_animation: Si True, les couleurs sont animées
+        audio_reactive: Si True, réagit à l'audio en temps réel
         fullscreen: Si True, démarre directement en plein écran
     
     Returns:
@@ -582,7 +852,8 @@ def create_deformed_grid(dimension: int = 64,
         distortion_strength=distortion_strength,
         distortion_fn=distortion_fn,
         color_scheme=color_scheme,
-        color_animation=color_animation
+        color_animation=color_animation,
+        audio_reactive=audio_reactive
     )
     
     # Si plein écran demandé, l'activer immédiatement
@@ -606,5 +877,24 @@ def fullscreen_demo():
     grid.run_interactive()
 
 
+def audio_reactive_demo():
+    """Démonstration avec réactivité audio - PARFAIT POUR LA MUSIQUE! 🎵"""
+    grid = create_deformed_grid(
+        dimension=64, 
+        cell_size=18, 
+        distortion_strength=0.2,  # Distorsion de base plus faible (l'audio l'augmente)
+        distortion_fn="sine",
+        color_scheme="neon", 
+        color_animation=True, 
+        audio_reactive=True,
+        fullscreen=True
+    )
+    print("\n🎵 MODE AUDIO-RÉACTIF ACTIVÉ!")
+    print("🎧 Lancez votre musique préférée et regardez l'art danser!")
+    print("🔊 Plus la musique est forte, plus les effets sont intenses!")
+    grid.run_interactive()
+
+
 if __name__ == "__main__":
-    fullscreen_demo()  # Start in fullscreen mode
+    # Choisir la démo à lancer
+    audio_reactive_demo()  # Mode audio-réactif par défaut!
