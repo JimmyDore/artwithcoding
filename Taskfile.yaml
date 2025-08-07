@@ -1,0 +1,55 @@
+version: '3'
+
+tasks:
+  demo:
+    desc: "Run the distorsion movement demo"
+    cmds:
+      - echo "🎨 Starting distorsion movement demo..."
+      - source venv/bin/activate && python distorsion_movement/demos.py
+      - echo "✅ Demo finished"
+
+  demo:quick:
+    desc: "Run quick demo with default settings"
+    cmds:
+      - echo "🎨 Starting quick windowed demo..."
+      - source venv/bin/activate && python -c "from distorsion_movement import quick_demo; quick_demo()"
+
+  demo:fullscreen:
+    desc: "Run fullscreen demo"
+    cmds:
+      - echo "🎨 Starting fullscreen demo..."
+      - source venv/bin/activate && python -c "from distorsion_movement import fullscreen_demo; fullscreen_demo()"
+
+  demo:audio:
+    desc: "Run audio-reactive demo"
+    cmds:
+      - echo "🎵 Starting audio-reactive demo..."
+      - echo "🎧 Make sure your microphone is enabled!"
+      - source venv/bin/activate && python -c "from distorsion_movement import audio_reactive_demo; audio_reactive_demo()"
+
+  test:
+    desc: "Run all tests"
+    cmds:
+      - echo "🧪 Running tests..."
+      - source venv/bin/activate && python distorsion_movement/test_modules.py
+      - echo "✅ Tests completed"
+
+  install:
+    desc: "Install required dependencies"
+    cmd: source venv/bin/activate && pip install pygame numpy
+
+  install:audio:
+    desc: "Install audio dependencies (optional)"
+    cmd: source venv/bin/activate && pip install pyaudio scipy
+
+  install:all:
+    desc: "Install all dependencies including audio"
+    deps: [install, install:audio]
+
+  help:
+    desc: "Show available commands"
+    cmd: task --list
+
+  test-echo:
+    desc: "Test echo command"
+    cmd: echo "Hello from Task!"
