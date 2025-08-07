@@ -57,6 +57,76 @@ Le code est conçu pour être facilement modifiable :
 - Ajustez les paramètres d'affichage dans `display_grid()`
 - Expérimentez avec différents algorithmes de couleur
 
+## Grille de carrés déformés géométriquement
+
+Le fichier `deformed_grid.py` implémente une nouvelle fonctionnalité d'art génératif : des grilles de carrés déformés géométriquement.
+
+### Utilisation rapide
+
+```python
+from deformed_grid import create_deformed_grid
+
+# Créer une grille déformée
+grid = create_deformed_grid(
+    dimension=48,           # Grille 48x48
+    cell_size=12,          # Carrés de 12 pixels
+    distortion_strength=0.4, # Intensité de déformation
+    distortion_fn="sine"    # Type de distorsion
+)
+
+# Lancer l'interface interactive
+grid.run_interactive()
+```
+
+### Types de distorsion disponibles
+
+- **`"random"`** : Déformation aléatoire statique
+- **`"sine"`** : Distorsion sinusoïdale animée (effet de vague)
+- **`"perlin"`** : Bruit de Perlin pour un effet organique
+- **`"circular"`** : Ondes circulaires depuis le centre
+
+### Contrôles interactifs
+
+- **ESC** : Quitter
+- **SPACE** : Changer le type de distorsion
+- **+/-** : Ajuster l'intensité de distorsion
+- **R** : Régénérer les paramètres aléatoires
+- **S** : Sauvegarder l'image courante
+
+### Démonstrations
+
+Lancez le script de démonstration pour explorer différents exemples :
+
+```bash
+python demo_deformed_grid.py
+```
+
+Le script propose 8 démonstrations différentes :
+1. Démonstration basique (distorsion aléatoire)
+2. Animation sinusoïdale
+3. Effet organique (Perlin)
+4. Ondes circulaires
+5. Haute densité (grille fine)
+6. Couleurs personnalisées
+7. Tremblement minimal (effet subtil)
+8. Export en lot (génération d'images)
+
+### Paramètres avancés
+
+```python
+from deformed_grid import DeformedGrid
+
+grid = DeformedGrid(
+    dimension=64,                           # Nombre de cellules par ligne/colonne
+    cell_size=8,                           # Taille moyenne des carrés
+    canvas_size=(800, 600),                # Taille de la fenêtre
+    distortion_strength=0.3,               # Intensité (0.0 à 1.0)
+    distortion_fn="random",                # Type de distorsion
+    background_color=(20, 20, 30),         # Couleur de fond RGB
+    square_color=(255, 255, 255)           # Couleur des carrés RGB
+)
+```
+
 ## Idées d'extensions
 
 - Patterns géométriques
