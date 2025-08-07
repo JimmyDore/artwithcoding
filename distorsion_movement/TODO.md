@@ -181,13 +181,13 @@
 ### **Phase 1 (High Impact, Low Effort)**
 
 - [X] Global README to explain the project 
-- [ ] Write a few tests
+- [X] Write a few tests
 - [X] Write a task file to run tests and to run the demos
 - [ ] Mouse interaction (attraction/repulsion)
+- [ ] GIF/MP4 export
 - [ ] Additional shape types (circles, triangles)
 - [ ] Motion blur effects
 - [ ] Preset scene system
-- [ ] GIF/MP4 export
 - [ ] Audio reactive features
 - [ ] Particle systems
 - [ ] Advanced distortion types

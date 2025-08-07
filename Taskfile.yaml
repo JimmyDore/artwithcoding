@@ -28,15 +28,63 @@ tasks:
       - source venv/bin/activate && python -c "from distorsion_movement import audio_reactive_demo; audio_reactive_demo()"
 
   test:
-    desc: "Run all tests"
+    desc: "Run all tests with pytest"
     cmds:
-      - echo "🧪 Running tests..."
-      - source venv/bin/activate && python distorsion_movement/test_modules.py
-      - echo "✅ Tests completed"
+      - echo "🧪 Running all tests..."
+      - source venv/bin/activate && pytest -v
+      - echo "✅ All tests completed"
+
+  test:unit:
+    desc: "Run only unit tests"
+    cmds:
+      - echo "🧪 Running unit tests..."
+      - source venv/bin/activate && pytest -v -m "unit or not integration"
+      - echo "✅ Unit tests completed"
+
+  test:integration:
+    desc: "Run only integration tests"
+    cmds:
+      - echo "🧪 Running integration tests..."
+      - source venv/bin/activate && pytest -v -m "integration"
+      - echo "✅ Integration tests completed"
+
+  test:coverage:
+    desc: "Run tests with coverage report"
+    cmds:
+      - echo "🧪 Running tests with coverage..."
+      - source venv/bin/activate && pytest --cov=distorsion_movement --cov-report=term-missing --cov-report=html
+      - echo "✅ Coverage report generated in htmlcov/"
+
+  test:watch:
+    desc: "Run tests in watch mode"
+    cmds:
+      - echo "🧪 Running tests in watch mode..."
+      - source venv/bin/activate && pytest-watch -- -v
+
+  test:fast:
+    desc: "Run fast tests only (exclude slow tests)"
+    cmds:
+      - echo "🧪 Running fast tests..."
+      - source venv/bin/activate && pytest -v -m "not slow"
+      - echo "✅ Fast tests completed"
+
+  test:validate:
+    desc: "Validate the entire test suite setup and coverage"
+    cmds:
+      - echo "🔍 Validating test suite..."
+      - echo "📊 Running tests with coverage..."
+      - source venv/bin/activate && pytest --cov=distorsion_movement --cov-report=term --cov-fail-under=80
+      - echo "🧪 Running unit tests..."
+      - source venv/bin/activate && pytest -v -m "unit" --tb=short
+      - echo "🔗 Running integration tests..."
+      - source venv/bin/activate && pytest -v -m "integration" --tb=short
+      - echo "⚡ Running fast tests..."
+      - source venv/bin/activate && pytest -v -m "not slow" --tb=short
+      - echo "✅ Test suite validation complete - all systems working!"
 
   install:
     desc: "Install required dependencies"
-    cmd: source venv/bin/activate && pip install pygame numpy
+    cmd: source venv/bin/activate && pip install -r requirements.txt
 
   install:audio:
     desc: "Install audio dependencies (optional)"
