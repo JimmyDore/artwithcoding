@@ -64,3 +64,53 @@ Le code est conçu pour être facilement modifiable :
 - Formes autres que des carrés
 - Animation temporelle
 - Interaction utilisateur
+
+
+## Other ideas:
+
+🎲 1. Grille avec règles de propagation (style “contagion”)
+	•	Concept : Un carré coloré “contamine” ses voisins avec une certaine couleur ou un effet au fil du temps.
+	•	Résultat : Une sorte d’onde ou de tache de couleur qui se propage dans la grille.
+	•	Originalité : Tu définis tes propres règles de propagation (aléatoire, influence de la couleur voisine, etc.)
+
+⸻
+
+🧠 2. Influence d’un bruit de Perlin ou Simplex
+	•	Concept : Tu utilises du bruit (comme une texture mathématique douce) pour moduler la couleur, la taille, la rotation des carrés.
+	•	Résultat : Des effets très organiques, qui rappellent des structures naturelles.
+	•	Originalité : Tu mélanges hasard contrôlé + structure.
+
+⸻
+
+🎨 3. Palette limitée avec contrainte esthétique
+	•	Concept : Tu choisis une palette (genre 4 couleurs de Kandinsky, ou le style Bauhaus) et tu forces les carrés à suivre un pattern (pas plus de 2 couleurs côte à côte, pas 3 fois la même de suite, etc.)
+	•	Résultat : Ça donne des rythmes visuels intéressants.
+	•	Originalité : Le code impose des contraintes artistiques.
+
+⸻
+
+🧩 4. Grille à déformation géométrique
+	•	Concept : Au lieu d’un carré fixe, chaque cellule est légèrement déformée (distorsion de position, taille, perspective).
+	•	Résultat : Un effet d’illusion ou d’espace qui tremble.
+	•	Originalité : L’ordre apparent de la grille est bousculé.
+
+⸻
+
+🌱 5. Évolution générationnelle
+	•	Concept : Tu fais tourner la grille dans le temps : à chaque tick, la grille change (un peu comme une vie cellulaire type “Game of Life”).
+	•	Résultat : Une œuvre animée, auto-évolutive.
+	•	Originalité : Tu n’affiches pas qu’un état, mais un processus.
+
+⸻
+
+🧵 6. Tissage de motifs / glitch
+	•	Concept : Chaque carré devient une “maille” dans un tissage visuel. Tu peux “glitcher” aléatoirement des sections (inversion de couleurs, rotations, miroir).
+	•	Résultat : Un mix entre géométrie stricte et chaos visuel.
+	•	Originalité : Belle tension entre contrôle et rupture.
+
+⸻
+
+👁️ 7. Œil qui regarde
+	•	Concept : Un carré sur la grille suit la souris (ou une zone chaude), les couleurs autour réagissent à sa position.
+	•	Résultat : Une grille “vivante”, qui semble te regarder ou réagir à toi.
+	•	Originalité : Une œuvre interactive minimaliste.
