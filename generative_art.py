@@ -7,15 +7,12 @@ import random
 import time
 
 
-def get_color_scheme(color_scheme):
+def get_color_schemes():
     """
-    Définit les plages de couleurs pour différents schémas.
-    
-    Args:
-        color_scheme (str): Le schéma de couleur choisi
+    Définit tous les schémas de couleurs disponibles.
     
     Returns:
-        dict: Plages min/max pour chaque canal RGB
+        dict: Dictionnaire de tous les schémas avec leurs plages min/max pour chaque canal RGB
     """
     schemes = {
         'random': {'r': (0, 1), 'g': (0, 1), 'b': (0, 1)},
@@ -33,17 +30,64 @@ def get_color_scheme(color_scheme):
         'darks': {'r': (0, 0.4), 'g': (0, 0.4), 'b': (0, 0.4)},
         'monochrome': {'r': (0, 1), 'g': (0, 1), 'b': (0, 1)},  # Spécial : même valeur pour R, G, B
     }
+    return schemes
+
+
+def get_color_scheme(color_scheme):
+    """
+    Définit les plages de couleurs pour différents schémas.
     
+    Args:
+        color_scheme (str): Le schéma de couleur choisi
+    
+    Returns:
+        dict: Plages min/max pour chaque canal RGB
+    """
+    schemes = get_color_schemes()
     return schemes.get(color_scheme.lower(), schemes['random'])
+
+
+def select_random_color_from_schemes(color_schemes):
+    """
+    Sélectionne aléatoirement une couleur parmi plusieurs schémas de couleurs.
+    
+    Args:
+        color_schemes (list): Liste des noms de schémas de couleur à utiliser
+    
+    Returns:
+        list: Couleur RGB [r, g, b] sélectionnée aléatoirement
+    """
+    if not color_schemes:
+        color_schemes = ['random']
+    
+    # Convertir en liste si c'est une chaîne unique
+    if isinstance(color_schemes, str):
+        color_schemes = [color_schemes]
+    
+    # Sélectionner un schéma aléatoirement
+    selected_scheme = random.choice(color_schemes)
+    scheme = get_color_scheme(selected_scheme)
+    
+    # Gestion spéciale pour monochrome
+    if selected_scheme.lower() == 'monochrome':
+        gray_value = random.uniform(scheme['r'][0], scheme['r'][1])
+        return [gray_value, gray_value, gray_value]
+    else:
+        # Générer des valeurs RGB dans les plages définies
+        r = random.uniform(scheme['r'][0], scheme['r'][1])
+        g = random.uniform(scheme['g'][0], scheme['g'][1])
+        b = random.uniform(scheme['b'][0], scheme['b'][1])
+        return [r, g, b]
 
 
 def generate_color_grid(dimension, color_scheme='random'):
     """
-    Génère une grille de carrés colorés aléatoirement selon un schéma de couleur.
+    Génère une grille de carrés colorés aléatoirement selon un ou plusieurs schémas de couleur.
     
     Args:
         dimension (int): Taille de la grille (dimension x dimension)
-        color_scheme (str): Schéma de couleur ('random', 'reds', 'blues', etc.)
+        color_scheme (str or list): Schéma(s) de couleur ('random', 'reds', 'blues', etc.)
+                                   Si c'est une liste, chaque pixel choisira aléatoirement parmi ces schémas
     
     Returns:
         numpy.ndarray: Grille de couleurs RGB de forme (dimension, dimension, 3)
@@ -51,22 +95,10 @@ def generate_color_grid(dimension, color_scheme='random'):
     # Créer une grille vide pour stocker les couleurs RGB
     grid = np.zeros((dimension, dimension, 3))
     
-    # Obtenir le schéma de couleur
-    scheme = get_color_scheme(color_scheme)
-    
-    # Remplir chaque pixel avec une couleur aléatoire selon le schéma
+    # Remplir chaque pixel avec une couleur aléatoire selon le(s) schéma(s)
     for i in range(dimension):
         for j in range(dimension):
-            if color_scheme.lower() == 'monochrome':
-                # Pour monochrome, utiliser la même valeur pour R, G, B
-                gray_value = random.uniform(scheme['r'][0], scheme['r'][1])
-                grid[i, j] = [gray_value, gray_value, gray_value]
-            else:
-                # Générer des valeurs RGB dans les plages définies
-                r = random.uniform(scheme['r'][0], scheme['r'][1])
-                g = random.uniform(scheme['g'][0], scheme['g'][1])
-                b = random.uniform(scheme['b'][0], scheme['b'][1])
-                grid[i, j] = [r, g, b]
+            grid[i, j] = select_random_color_from_schemes(color_scheme)
     
     return grid
 
@@ -115,30 +147,44 @@ def save_grid(grid, filename="generative_art.png", dpi=300):
 
 def generate_color_grid_vectorized(dimension, color_scheme='random'):
     """
-    Version optimisée utilisant numpy pour générer la grille selon un schéma de couleur.
+    Version optimisée utilisant numpy pour générer la grille selon un ou plusieurs schémas de couleur.
     Plus rapide pour des dimensions importantes.
     
     Args:
         dimension (int): Taille de la grille (dimension x dimension)
-        color_scheme (str): Schéma de couleur ('random', 'reds', 'blues', etc.)
+        color_scheme (str or list): Schéma(s) de couleur ('random', 'reds', 'blues', etc.)
+                                   Si c'est une liste, chaque pixel choisira aléatoirement parmi ces schémas
     
     Returns:
         numpy.ndarray: Grille de couleurs RGB de forme (dimension, dimension, 3)
     """
-    # Obtenir le schéma de couleur
-    scheme = get_color_scheme(color_scheme)
-    
-    if color_scheme.lower() == 'monochrome':
-        # Pour monochrome, générer une seule valeur et l'appliquer aux 3 canaux
-        gray_values = np.random.uniform(scheme['r'][0], scheme['r'][1], (dimension, dimension, 1))
-        return np.repeat(gray_values, 3, axis=2)
-    else:
-        # Générer des valeurs pour chaque canal dans les plages définies
-        r_channel = np.random.uniform(scheme['r'][0], scheme['r'][1], (dimension, dimension))
-        g_channel = np.random.uniform(scheme['g'][0], scheme['g'][1], (dimension, dimension))
-        b_channel = np.random.uniform(scheme['b'][0], scheme['b'][1], (dimension, dimension))
+    # Si c'est un schéma unique (pas une liste), utiliser l'ancienne méthode optimisée
+    if isinstance(color_scheme, str):
+        scheme = get_color_scheme(color_scheme)
         
-        return np.stack([r_channel, g_channel, b_channel], axis=2)
+        if color_scheme.lower() == 'monochrome':
+            # Pour monochrome, générer une seule valeur et l'appliquer aux 3 canaux
+            gray_values = np.random.uniform(scheme['r'][0], scheme['r'][1], (dimension, dimension, 1))
+            return np.repeat(gray_values, 3, axis=2)
+        else:
+            # Générer des valeurs pour chaque canal dans les plages définies
+            r_channel = np.random.uniform(scheme['r'][0], scheme['r'][1], (dimension, dimension))
+            g_channel = np.random.uniform(scheme['g'][0], scheme['g'][1], (dimension, dimension))
+            b_channel = np.random.uniform(scheme['b'][0], scheme['b'][1], (dimension, dimension))
+            
+            return np.stack([r_channel, g_channel, b_channel], axis=2)
+    
+    # Si c'est une liste de schémas, générer pixel par pixel
+    # (moins optimisé mais nécessaire pour mélanger les schémas)
+    else:
+        grid = np.zeros((dimension, dimension, 3))
+        
+        # Remplir chaque pixel avec une couleur aléatoire selon le(s) schéma(s)
+        for i in range(dimension):
+            for j in range(dimension):
+                grid[i, j] = select_random_color_from_schemes(color_scheme)
+        
+        return grid
 
 
 def display_multiple_grids(dimensions, color_scheme='random', figsize=(20, 12), auto_close=True):
@@ -147,7 +193,7 @@ def display_multiple_grids(dimensions, color_scheme='random', figsize=(20, 12), 
     
     Args:
         dimensions (list): Liste des dimensions à afficher
-        color_scheme (str): Schéma de couleur à utiliser
+        color_scheme (str or list): Schéma(s) de couleur à utiliser
         figsize (tuple): Taille de la figure globale
         auto_close (bool): Ferme automatiquement la fenêtre après 1 seconde
     """
@@ -171,7 +217,8 @@ def display_multiple_grids(dimensions, color_scheme='random', figsize=(20, 12), 
         row = i // cols
         col = i % cols
         
-        print(f"Génération de la grille {dimension}x{dimension} ({color_scheme})...")
+        scheme_str = color_scheme if isinstance(color_scheme, str) else f"mix of {len(color_scheme)} schemes"
+        print(f"Génération de la grille {dimension}x{dimension} ({scheme_str})...")
         grid = generate_color_grid_vectorized(dimension, color_scheme)
         
         ax = axes[row, col]
@@ -185,7 +232,8 @@ def display_multiple_grids(dimensions, color_scheme='random', figsize=(20, 12), 
         col = i % cols
         axes[row, col].axis('off')
     
-    plt.suptitle(f'Art Génératif - {color_scheme.title()} - Comparaison de Résolutions', 
+    title_scheme = color_scheme.title() if isinstance(color_scheme, str) else f"Mélange de {len(color_scheme)} schémas"
+    plt.suptitle(f'Art Génératif - {title_scheme} - Comparaison de Résolutions', 
                  fontsize=18, fontweight='bold')
     plt.tight_layout()
     
@@ -203,7 +251,7 @@ def save_multiple_grids(dimensions, color_scheme='random', filename="generative_
     
     Args:
         dimensions (list): Liste des dimensions à afficher
-        color_scheme (str): Schéma de couleur à utiliser
+        color_scheme (str or list): Schéma(s) de couleur à utiliser
         filename (str): Nom du fichier de sortie
         figsize (tuple): Taille de la figure globale
         dpi (int): Résolution de l'image
@@ -239,7 +287,8 @@ def save_multiple_grids(dimensions, color_scheme='random', filename="generative_
         col = i % cols
         axes[row, col].axis('off')
     
-    plt.suptitle(f'Art Génératif - {color_scheme.title()} - Comparaison de Résolutions', 
+    title_scheme = color_scheme.title() if isinstance(color_scheme, str) else f"Mélange de {len(color_scheme)} schémas"
+    plt.suptitle(f'Art Génératif - {title_scheme} - Comparaison de Résolutions', 
                  fontsize=18, fontweight='bold')
     plt.tight_layout()
     plt.savefig(filename, dpi=dpi, bbox_inches='tight', pad_inches=0.2)
@@ -331,11 +380,58 @@ if __name__ == "__main__":
     save_grid(mono_grid, "monochrome_256x256.png")
 
 
+    # 6. Démonstration des schémas multiples
+    print("\n6. Démonstration des SCHÉMAS MULTIPLES...")
+    
+    # Mélange de tons chauds et froids
+    print("  a) Mélange tons chauds et froids...")
+    mixed_warm_cool = ['warm', 'cool']
+    display_multiple_grids(dimensions, mixed_warm_cool)
+    save_multiple_grids(dimensions, mixed_warm_cool, "melange_warm_cool.png")
+    
+    # Mélange de couleurs primaires
+    print("  b) Mélange couleurs primaires...")
+    primary_mix = ['reds', 'blues', 'greens']
+    display_multiple_grids(dimensions, primary_mix)
+    save_multiple_grids(dimensions, primary_mix, "melange_primaires.png")
+    
+    # Mélange complexe avec pastels et tons sombres
+    print("  c) Mélange pastels et tons sombres...")
+    pastel_dark_mix = ['pastels', 'darks', 'purples']
+    display_multiple_grids(dimensions, pastel_dark_mix)
+    save_multiple_grids(dimensions, pastel_dark_mix, "melange_pastels_sombres.png")
+    
+    # Mélange arc-en-ciel
+    print("  d) Mélange arc-en-ciel complet...")
+    rainbow_mix = ['reds', 'oranges', 'yellows', 'greens', 'cyans', 'blues', 'purples', 'magentas']
+    display_multiple_grids(dimensions, rainbow_mix)
+    save_multiple_grids(dimensions, rainbow_mix, "melange_arc_en_ciel.png")
+
+    # Mélange green/red
+    print("  e) Mélange green/red...")
+    green_red_mix = ['greens', 'reds']
+    display_multiple_grids(dimensions, green_red_mix)
+    save_multiple_grids(dimensions, green_red_mix, "melange_green_red.png")
+
+    # Mélange rouge/jaune/vert
+    print("  f) Mélange rouge/jaune/vert...")
+    red_yellow_green_mix = ['reds', 'yellows', 'greens']
+    display_multiple_grids(dimensions, red_yellow_green_mix)
+    save_multiple_grids(dimensions, red_yellow_green_mix, "melange_red_yellow_green.png")
+
     print("\n=== Exemples d'utilisation ===")
     print("Pour utiliser un schéma de couleur spécifique :")
     print("  grid = generate_color_grid_vectorized(64, 'reds')")
     print("  display_grid(grid, 'Mon art en rouge')")
+    print("\nPour utiliser plusieurs schémas de couleur :")
+    print("  grid = generate_color_grid_vectorized(64, ['reds', 'blues', 'greens'])")
+    print("  display_grid(grid, 'Mon art multicolore')")
     print("\nSchémas disponibles :")
     schemes = ['random', 'reds', 'blues', 'greens', 'purples', 'oranges', 
               'yellows', 'cyans', 'magentas', 'warm', 'cool', 'pastels', 'darks', 'monochrome']
     print("  " + ", ".join(schemes))
+    print("\nExemples de mélanges intéressants :")
+    print("  ['warm', 'cool']  # Contraste chaud/froid")
+    print("  ['reds', 'blues', 'greens']  # Couleurs primaires")
+    print("  ['pastels', 'darks']  # Contraste clair/sombre")
+    print("  ['reds', 'oranges', 'yellows']  # Dégradé de couleurs chaudes")
