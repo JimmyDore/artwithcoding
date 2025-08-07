@@ -16,6 +16,8 @@ class DistortionType(Enum):
 class ColorScheme(Enum):
     """Schémas de couleurs disponibles"""
     MONOCHROME = "monochrome"
+    BLACK_WHITE_RADIAL = "black_white_radial"
+    BLACK_WHITE_ALTERNATING = "black_white_alternating"
     GRADIENT = "gradient"
     RAINBOW = "rainbow"
     COMPLEMENTARY = "complementary"

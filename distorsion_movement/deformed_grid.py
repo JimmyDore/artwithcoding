@@ -338,6 +338,7 @@ class DeformedGrid:
         print("- F: Basculer plein écran/fenêtré")
         print("- SPACE: Changer le type de distorsion")
         print("- C: Changer le schéma de couleurs")
+
         print("- A: Activer/désactiver l'animation des couleurs")
         print("- M: Activer/désactiver la réactivité audio")
         print("- H: Changer le type de forme")
@@ -390,6 +391,7 @@ class DeformedGrid:
                         self.color_animation = not self.color_animation
                         status = "activée" if self.color_animation else "désactivée"
                         print(f"Animation des couleurs: {status}")
+
                     elif event.key == pygame.K_m:
                         # Activer/désactiver la réactivité audio
                         from distorsion_movement.audio_analyzer import AUDIO_AVAILABLE

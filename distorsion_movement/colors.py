@@ -37,6 +37,25 @@ class ColorGenerator:
         if color_scheme == ColorScheme.MONOCHROME.value:
             return square_color
             
+        elif color_scheme == ColorScheme.BLACK_WHITE_RADIAL.value:
+            # Noir et blanc radial - distribution basée sur la distance au centre
+            # Les formes au centre tendent vers le blanc, celles aux bords vers le noir
+            if distance_to_center < 0.3:
+                return (255, 255, 255)  # Blanc au centre
+            elif distance_to_center > 0.7:
+                return (0, 0, 0)  # Noir aux bords
+            else:
+                # Zone intermédiaire : alternance selon l'index
+                return (255, 255, 255) if (index % 2 == 0) else (0, 0, 0)
+        
+        elif color_scheme == ColorScheme.BLACK_WHITE_ALTERNATING.value:
+            # Noir et blanc alternance claire - damier/checkerboard pattern
+            row = index // dimension
+            col = index % dimension
+            # Pattern damier classique
+            is_white = (row + col) % 2 == 0
+            return (255, 255, 255) if is_white else (0, 0, 0)
+            
         elif color_scheme == ColorScheme.GRADIENT.value:
             # Gradient diagonal du coin supérieur gauche au coin inférieur droit
             t = (x_norm + y_norm) / 2.0
@@ -141,19 +160,35 @@ class ColorGenerator:
         Returns:
             Couleur animée ou couleur de base si animation désactivée
         """
+        # Si aucune animation n'est activée, retourner la couleur de base
         if not color_animation and not audio_reactive:
             return base_color
         
         r, g, b = base_color
         
-        # Animation normale si pas d'audio
-        if not audio_reactive or not audio_analyzer:
+        # Appliquer l'animation normale seulement si color_animation est True
+        if color_animation and (not audio_reactive or not audio_analyzer):
             pulse = math.sin(time * 2 + position_index * 0.1) * 0.2 + 1.0
             pulse = max(0.5, min(1.5, pulse))
             r = int(min(255, r * pulse))
             g = int(min(255, g * pulse))
             b = int(min(255, b * pulse))
             return (r, g, b)
+        
+        # Si seul audio_reactive est activé (mais pas color_animation)
+        if audio_reactive and audio_analyzer and not color_animation:
+            # Ne pas appliquer l'animation normale, aller directement à l'audio
+            pass
+        # Si les deux sont activés, appliquer d'abord l'animation normale
+        elif color_animation and audio_reactive and audio_analyzer:
+            pulse = math.sin(time * 2 + position_index * 0.1) * 0.2 + 1.0
+            pulse = max(0.5, min(1.5, pulse))
+            r = int(min(255, r * pulse))
+            g = int(min(255, g * pulse))
+            b = int(min(255, b * pulse))
+        # Si ni l'un ni l'autre ne s'applique, retourner la couleur de base
+        elif not audio_reactive or not audio_analyzer:
+            return base_color
         
         # Animation réactive à l'audio
         audio_features = audio_analyzer.get_audio_features()

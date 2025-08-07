@@ -178,7 +178,7 @@
 
 ## Bugs 
 - [X] shift + h is not working
-- [ ] It seems I cannot go back to monochrome
+- [X] It seems I cannot go back to monochrome
 - [ ] Audio feature is not working well
 
 ## 🏆 **Implementation Priority**
