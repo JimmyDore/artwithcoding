@@ -4,6 +4,7 @@ Générateur d'art génératif - Grille de carrés colorés
 import numpy as np
 import matplotlib.pyplot as plt
 import random
+import time
 
 
 def get_color_scheme(color_scheme):
@@ -70,7 +71,7 @@ def generate_color_grid(dimension, color_scheme='random'):
     return grid
 
 
-def display_grid(grid, title="Grille de carrés colorés", figsize=(10, 10)):
+def display_grid(grid, title="Grille de carrés colorés", figsize=(10, 10), auto_close=True):
     """
     Affiche la grille de couleurs dans une fenêtre graphique.
     
@@ -78,13 +79,20 @@ def display_grid(grid, title="Grille de carrés colorés", figsize=(10, 10)):
         grid (numpy.ndarray): Grille de couleurs RGB
         title (str): Titre de la fenêtre
         figsize (tuple): Taille de la figure (largeur, hauteur)
+        auto_close (bool): Ferme automatiquement la fenêtre après 1 seconde
     """
     plt.figure(figsize=figsize)
     plt.imshow(grid, interpolation='nearest')
     plt.title(title, fontsize=16)
     plt.axis('off')  # Masquer les axes pour un rendu plus propre
     plt.tight_layout()
-    plt.show()
+    
+    if auto_close:
+        plt.show(block=False)
+        plt.pause(1)  # Affiche pendant 1 seconde
+        plt.close()
+    else:
+        plt.show()
 
 
 def save_grid(grid, filename="generative_art.png", dpi=300):
@@ -133,7 +141,7 @@ def generate_color_grid_vectorized(dimension, color_scheme='random'):
         return np.stack([r_channel, g_channel, b_channel], axis=2)
 
 
-def display_multiple_grids(dimensions, color_scheme='random', figsize=(20, 12)):
+def display_multiple_grids(dimensions, color_scheme='random', figsize=(20, 12), auto_close=True):
     """
     Affiche plusieurs grilles de différentes dimensions sur la même vue.
     
@@ -141,6 +149,7 @@ def display_multiple_grids(dimensions, color_scheme='random', figsize=(20, 12)):
         dimensions (list): Liste des dimensions à afficher
         color_scheme (str): Schéma de couleur à utiliser
         figsize (tuple): Taille de la figure globale
+        auto_close (bool): Ferme automatiquement la fenêtre après 1 seconde
     """
     num_grids = len(dimensions)
     
@@ -179,7 +188,13 @@ def display_multiple_grids(dimensions, color_scheme='random', figsize=(20, 12)):
     plt.suptitle(f'Art Génératif - {color_scheme.title()} - Comparaison de Résolutions', 
                  fontsize=18, fontweight='bold')
     plt.tight_layout()
-    plt.show()
+    
+    if auto_close:
+        plt.show(block=False)
+        plt.pause(1)  # Affiche pendant 1 seconde
+        plt.close()
+    else:
+        plt.show()
 
 
 def save_multiple_grids(dimensions, color_scheme='random', filename="generative_art_comparison.png", figsize=(20, 12), dpi=300):
@@ -232,12 +247,13 @@ def save_multiple_grids(dimensions, color_scheme='random', filename="generative_
     print(f"Comparaison sauvegardée sous {filename}")
 
 
-def display_color_schemes_comparison(dimension=64):
+def display_color_schemes_comparison(dimension=64, auto_close=True):
     """
     Affiche une comparaison de différents schémas de couleur sur une même dimension.
     
     Args:
         dimension (int): Dimension de la grille à utiliser pour la comparaison
+        auto_close (bool): Ferme automatiquement la fenêtre après 1 seconde
     """
     color_schemes = ['random', 'reds', 'blues', 'greens', 'purples', 'oranges', 
                     'yellows', 'cyans', 'warm', 'cool', 'pastels', 'monochrome']
@@ -249,9 +265,11 @@ def display_color_schemes_comparison(dimension=64):
     fig, axes = plt.subplots(rows, cols, figsize=(16, 12))
     axes = axes.flatten()
     
+    grids = []
     for i, scheme in enumerate(color_schemes):
         print(f"Génération {scheme}...")
         grid = generate_color_grid_vectorized(dimension, scheme)
+        grids.append(grid)
         
         axes[i].imshow(grid, interpolation='nearest')
         axes[i].set_title(f'{scheme.title()}', fontsize=12, fontweight='bold')
@@ -264,9 +282,15 @@ def display_color_schemes_comparison(dimension=64):
     plt.suptitle(f'Comparaison des Schémas de Couleur ({dimension}×{dimension})', 
                  fontsize=16, fontweight='bold')
     plt.tight_layout()
-    plt.show()
+    
+    if auto_close:
+        plt.show(block=False)
+        plt.pause(1)  # Affiche pendant 1 seconde
+        plt.close()
+    else:
+        plt.show()
 
-    return grid
+    return grids[0]  # Return the first grid for compatibility
 
 
 if __name__ == "__main__":
