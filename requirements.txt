@@ -13,3 +13,5 @@ pygame==2.6.1
 # Audio reactivity dependencies (optional)
 pyaudio>=0.2.11
 scipy>=1.9.0
+# GIF creation dependencies
+imageio>=2.34.0

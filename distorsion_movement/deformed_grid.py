@@ -10,6 +10,8 @@ import pygame
 import numpy as np
 import math
 import random
+import datetime
+import threading
 from typing import Tuple, List
 
 from distorsion_movement.enums import DistortionType, ColorScheme, ShapeType
@@ -17,6 +19,9 @@ from distorsion_movement.audio_analyzer import AudioAnalyzer
 from distorsion_movement.colors import ColorGenerator
 from distorsion_movement.distortions import DistortionEngine
 from distorsion_movement.shapes import get_shape_renderer_function
+
+import os 
+import imageio
 
 
 class DeformedGrid:
@@ -86,6 +91,13 @@ class DeformedGrid:
         # Variables pour le menu d'aide
         self.show_help = False
         self.help_font = None
+        
+        # Variables pour l'enregistrement GIF
+        self.is_recording = False
+        self.recorded_frames = []
+        self.max_frames = 900  # Max 15 secondes à 60 FPS
+        self.frame_skip = 1  # Capturer chaque frame par défaut
+        self.recording_start_time = None
         
         # Initialisation pygame
         pygame.init()
@@ -250,6 +262,7 @@ class DeformedGrid:
             ("Audio & Sauvegarde", [
                 ("M", "Activer/désactiver la réactivité audio"),
                 ("S", "Sauvegarder l'image actuelle"),
+                ("G", "Démarrer/arrêter l'enregistrement GIF"),
             ])
         ]
         
@@ -328,6 +341,102 @@ class DeformedGrid:
             volume_speed = 1.0 + min(audio_features['overall_volume'] * 2.0, 3.0)  # Max 4x speed
             self.animation_speed = max(0.005, min(0.02 * volume_speed, 0.1))  # Entre 0.005 et 0.1
     
+    def start_gif_recording(self):
+        """Démarre l'enregistrement GIF"""
+        if self.is_recording:
+            print("⚠️ Enregistrement déjà en cours!")
+            return
+            
+        self.is_recording = True
+        self.recorded_frames = []
+        self.recording_start_time = datetime.datetime.now()
+        print(f"🔴 Enregistrement GIF démarré (max {self.max_frames} frames)")
+        print("   Appuyez sur 'G' à nouveau pour arrêter et sauvegarder")
+    
+    def stop_gif_recording(self):
+        """Arrête l'enregistrement et sauvegarde le GIF"""
+        if not self.is_recording:
+            print("⚠️ Aucun enregistrement en cours!")
+            return
+            
+        self.is_recording = False
+        
+        if len(self.recorded_frames) == 0:
+            print("⚠️ Aucune frame capturée!")
+            return
+            
+        # Créer le GIF dans un thread séparé pour éviter de bloquer l'UI
+        thread = threading.Thread(target=self._save_gif_async)
+        thread.start()
+        print(f"🟡 Arrêt de l'enregistrement ({len(self.recorded_frames)} frames)")
+        print("   Création du GIF en cours...")
+    
+    def _capture_frame(self):
+        """Capture la frame actuelle pour l'enregistrement GIF"""
+        if not self.is_recording:
+            return
+            
+        # Éviter de capturer trop de frames
+        if len(self.recorded_frames) >= self.max_frames:
+            print(f"⚠️ Limite de frames atteinte ({self.max_frames}), arrêt auto...")
+            self.stop_gif_recording()
+            return
+            
+        # Capturer chaque N-ième frame selon frame_skip
+        frame_count = len(self.recorded_frames)
+        if frame_count % self.frame_skip == 0:
+            # Convertir la surface pygame en array numpy
+            surface_array = pygame.surfarray.array3d(self.screen)
+            # Pygame utilise (width, height, channels), nous devons transposer en (height, width, channels)
+            frame_array = np.transpose(surface_array, (1, 0, 2))
+            self.recorded_frames.append(frame_array)
+    
+    def _save_gif_async(self):
+        """Sauvegarde le GIF de façon asynchrone"""
+        try:
+            
+            # Générer un nom de fichier unique
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"{timestamp}_art_animation.gif"
+            # Créer le dossier 'gifs' s'il n'existe pas
+            gif_folder = "gifs"
+            if not os.path.exists(gif_folder):
+                os.makedirs(gif_folder)
+            filename = os.path.join(gif_folder, filename)
+            # Créer le GIF avec imageio
+            # FPS ajusté selon le frame_skip pour avoir une animation fluide
+            fps = 60 // self.frame_skip if self.frame_skip > 0 else 30
+            fps = min(fps, 20)  # Limiter le FPS pour éviter des GIFs trop rapides
+            
+            imageio.mimsave(filename, self.recorded_frames, fps=fps, loop=0)
+            
+            duration = len(self.recorded_frames) / fps
+            print(f"✅ GIF sauvegardé: {filename}")
+            print(f"   📊 {len(self.recorded_frames)} frames, {duration:.1f}s, {fps} FPS")
+            
+        except ImportError:
+            print("❌ Erreur: imageio non installé!")
+            print("   Installez avec: pip install imageio")
+            # Fallback: sauvegarder les frames individuellement
+            self._save_frames_as_images()
+        except Exception as e:
+            print(f"❌ Erreur lors de la création du GIF: {e}")
+            self._save_frames_as_images()
+    
+    def _save_frames_as_images(self):
+        """Sauvegarde les frames comme images individuelles (fallback)"""
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        print(f"💾 Sauvegarde de {len(self.recorded_frames)} frames individuelles...")
+        
+        for i, frame in enumerate(self.recorded_frames):
+            filename = f"frame_{timestamp}_{i:04d}.png"
+            # Convertir numpy array vers surface pygame puis sauvegarder
+            frame_transposed = np.transpose(frame, (1, 0, 2))
+            surface = pygame.surfarray.make_surface(frame_transposed)
+            pygame.image.save(surface, filename)
+            
+        print(f"✅ Frames sauvegardées: frame_{timestamp}_0000.png à frame_{timestamp}_{len(self.recorded_frames)-1:04d}.png")
+
     def run_interactive(self):
         """Lance la boucle interactive principale"""
         running = True
@@ -346,6 +455,7 @@ class DeformedGrid:
         print("- +/-: Ajuster l'intensité de distorsion")
         print("- R: Régénérer les paramètres aléatoires")
         print("- S: Sauvegarder l'image")
+        print("- G: Démarrer/arrêter l'enregistrement GIF")
         
         distortion_types = [t.value for t in DistortionType]
         current_distortion_index = 0
@@ -447,10 +557,28 @@ class DeformedGrid:
                         self.toggle_fullscreen()
                         mode = "plein écran" if self.is_fullscreen else "fenêtré"
                         print(f"Mode: {mode}")
+                    elif event.key == pygame.K_g:
+                        # Basculer l'enregistrement GIF
+                        if self.is_recording:
+                            self.stop_gif_recording()
+                        else:
+                            self.start_gif_recording()
             
             self.update()
             self.render()
+            
+            # Capturer la frame pour l'enregistrement GIF si actif
+            self._capture_frame()
+            
             self.clock.tick(60)  # 60 FPS
+        
+        # Auto-sauvegarder le GIF si un enregistrement est en cours
+        if self.is_recording:
+            print("\n🟡 Fermeture de l'application - sauvegarde automatique du GIF...")
+            self.stop_gif_recording()
+            # Attendre un peu pour permettre au thread de se terminer
+            import time
+            time.sleep(2)
         
         # Cleanup audio
         if self.audio_analyzer:

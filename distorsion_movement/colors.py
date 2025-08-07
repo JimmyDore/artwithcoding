@@ -34,10 +34,10 @@ class ColorGenerator:
         Returns:
             Tuple RGB (r, g, b)
         """
-        if color_scheme == ColorScheme.MONOCHROME.value:
+        if color_scheme == "monochrome":
             return square_color
             
-        elif color_scheme == ColorScheme.BLACK_WHITE_RADIAL.value:
+        elif color_scheme == "black_white_radial":
             # Noir et blanc radial - distribution basée sur la distance au centre
             # Les formes au centre tendent vers le blanc, celles aux bords vers le noir
             if distance_to_center < 0.3:
@@ -48,7 +48,7 @@ class ColorGenerator:
                 # Zone intermédiaire : alternance selon l'index
                 return (255, 255, 255) if (index % 2 == 0) else (0, 0, 0)
         
-        elif color_scheme == ColorScheme.BLACK_WHITE_ALTERNATING.value:
+        elif color_scheme == "black_white_alternating":
             # Noir et blanc alternance claire - damier/checkerboard pattern
             row = index // dimension
             col = index % dimension
@@ -56,7 +56,7 @@ class ColorGenerator:
             is_white = (row + col) % 2 == 0
             return (255, 255, 255) if is_white else (0, 0, 0)
             
-        elif color_scheme == ColorScheme.GRADIENT.value:
+        elif color_scheme == "gradient":
             # Gradient diagonal du coin supérieur gauche au coin inférieur droit
             t = (x_norm + y_norm) / 2.0
             r = int(50 + t * 205)
@@ -64,20 +64,20 @@ class ColorGenerator:
             b = int(200 - t * 100)
             return (r, g, b)
             
-        elif color_scheme == ColorScheme.RAINBOW.value:
+        elif color_scheme == "rainbow":
             # Arc-en-ciel basé sur la position
             hue = (x_norm + y_norm * 0.5) % 1.0
             r, g, b = colorsys.hsv_to_rgb(hue, 0.8, 0.9)
             return (int(r * 255), int(g * 255), int(b * 255))
             
-        elif color_scheme == ColorScheme.COMPLEMENTARY.value:
+        elif color_scheme == "complementary":
             # Couleurs complémentaires alternées
             if (index + (index // dimension)) % 2 == 0:
                 return (255, 100, 50)  # Orange
             else:
                 return (50, 150, 255)  # Bleu
                 
-        elif color_scheme == ColorScheme.TEMPERATURE.value:
+        elif color_scheme == "temperature":
             # Couleurs chaudes au centre, froides aux bords
             temp = 1.0 - distance_to_center
             if temp > 0.7:
@@ -91,19 +91,19 @@ class ColorGenerator:
                 r, g, b = colorsys.hsv_to_rgb(0.6 + temp * 0.2, 0.7, 0.8)
             return (int(r * 255), int(g * 255), int(b * 255))
             
-        elif color_scheme == ColorScheme.PASTEL.value:
+        elif color_scheme == "pastel":
             # Couleurs pastel douces
             hue = (x_norm * 0.3 + y_norm * 0.7) % 1.0
             r, g, b = colorsys.hsv_to_rgb(hue, 0.3, 0.9)
             return (int(r * 255), int(g * 255), int(b * 255))
             
-        elif color_scheme == ColorScheme.NEON.value:
+        elif color_scheme == "neon":
             # Couleurs néon vives
             hue = (distance_to_center + x_norm * 0.5) % 1.0
             r, g, b = colorsys.hsv_to_rgb(hue, 1.0, 1.0)
             return (int(r * 255), int(g * 255), int(b * 255))
             
-        elif color_scheme == ColorScheme.OCEAN.value:
+        elif color_scheme == "ocean":
             # Thème océan - bleus et verts
             depth = distance_to_center
             if depth < 0.3:
@@ -116,7 +116,7 @@ class ColorGenerator:
                 # Eau profonde - bleu foncé
                 return (25, 25, 112)
                 
-        elif color_scheme == ColorScheme.FIRE.value:
+        elif color_scheme == "fire":
             # Thème feu - rouges, oranges, jaunes
             intensity = 1.0 - distance_to_center + y_norm * 0.3
             if intensity > 0.8:
@@ -126,7 +126,7 @@ class ColorGenerator:
             else:
                 return (220, 20, 60)    # Rouge foncé
                 
-        elif color_scheme == ColorScheme.FOREST.value:
+        elif color_scheme == "forest":
             # Thème forêt - verts variés
             green_intensity = 0.3 + distance_to_center * 0.7 + x_norm * 0.2
             if green_intensity > 0.8:

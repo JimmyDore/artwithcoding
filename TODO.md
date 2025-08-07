@@ -179,6 +179,7 @@
 ## Bugs 
 - [X] shift + h is not working
 - [X] It seems I cannot go back to monochrome
+- [ ] Fix or remove useless tests
 - [ ] Audio feature is not working well
 
 ## 🏆 **Implementation Priority**
@@ -190,7 +191,7 @@
 - [X] Write a task file to run tests and to run the demos
 - [X] Additional shape types (circles, triangles)
 - [X] Open the command guide with a key
-- [ ] GIF/MP4 export
+- [X] GIF/MP4 export
 - [ ] Add new distortion types
 
 

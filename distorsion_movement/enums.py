@@ -21,12 +21,12 @@ class ColorScheme(Enum):
     GRADIENT = "gradient"
     RAINBOW = "rainbow"
     COMPLEMENTARY = "complementary"
-    TEMPERATURE = "temperature"
+    # TEMPERATURE = "temperature"
     PASTEL = "pastel"
     NEON = "neon"
-    OCEAN = "ocean"
-    FIRE = "fire"
-    FOREST = "forest"
+    # OCEAN = "ocean"
+    # FIRE = "fire"
+    # FOREST = "forest"
 
 
 class ShapeType(Enum):
