@@ -1,186 +1,261 @@
-# Art Génératif avec Code
+# 🎨 Distorsion Movement - Interactive Generative Art Engine
 
-Ce projet explore l'art génératif en créant des visualisations colorées programmatiques.
+**Distorsion Movement** is a real-time generative art platform that creates mesmerizing visual experiences through geometrically deformed grids. The system generates dynamic, interactive artwork by applying mathematical distortions to regular grids of colored squares, with optional audio-reactive capabilities for music visualization.
 
-## Installation
+## 🎯 Project Overview
 
-1. Clonez le repository
-2. Créez un environnement virtuel :
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # Sur macOS/Linux
-   # ou
-   venv\Scripts\activate     # Sur Windows
-   ```
-3. Installez les dépendances :
-   ```bash
-   pip install -r requirements.txt
-   ```
+### What It Does
+The project creates animated grids of squares where each square can be:
+- **Geometrically distorted** using mathematical functions (sine waves, Perlin noise, circular patterns)
+- **Dynamically colored** using various schemes (rainbow, gradient, neon, temperature-based, etc.)
+- **Audio-reactive** to music and sound input in real-time
+- **Interactively controlled** through keyboard shortcuts and parameters
 
-## Utilisation
+### How It Works Technically
 
-### Grille de carrés colorés
+The core architecture follows a modular design with clear separation of concerns:
 
-Le fichier `generative_art.py` contient une fonction pour générer une grille de carrés colorés aléatoirement :
+1. **Grid Generation**: Creates a regular NxN grid of squares with base positions
+2. **Distortion Engine**: Applies mathematical transformations to deform square positions and orientations
+3. **Color System**: Generates dynamic colors based on position, time, and audio input
+4. **Audio Analysis**: Real-time FFT analysis of microphone input to extract bass, mids, highs, and beat detection
+5. **Rendering**: Real-time pygame-based visualization with 60fps target
 
-```python
-from generative_art import generate_color_grid_vectorized, display_grid
+### Mathematical Foundation
 
-# Générer une grille 64x64
-grid = generate_color_grid_vectorized(64)
+The distortions are based on several mathematical approaches:
+- **Sine Wave Distortions**: `sin(x * frequency + phase) * amplitude`
+- **Perlin Noise**: Smooth, organic-looking deformations
+- **Circular Distortions**: Radial distortions from center points
+- **Random Static**: Controlled randomness for chaotic effects
 
-# Afficher la grille
-display_grid(grid, "Ma grille colorée")
+Audio reactivity maps frequency bands to visual parameters:
+- 🥁 **Bass (20-250Hz)** → Distortion intensity
+- 🎸 **Mids (250Hz-4kHz)** → Color hue rotation  
+- ✨ **Highs (4kHz+)** → Brightness boosts
+- 💥 **Beat detection** → Flash effects
+- 📢 **Overall volume** → Animation speed
+
+## 🏗️ Project Structure
+
+```
+distorsion_movement/
+├── __init__.py              # Package entry point & public API
+├── deformed_grid.py         # Main DeformedGrid class (366 lines)
+├── enums.py                 # Type definitions (DistortionType, ColorScheme)
+├── audio_analyzer.py        # Real-time audio analysis & FFT processing
+├── colors.py                # Color generation algorithms
+├── distortions.py           # Geometric distortion algorithms
+├── demos.py                 # Demo functions & usage examples
+├── test_modules.py          # Unit tests
+├── improvements.md          # Future development roadmap
+├── README_modules.md        # Detailed module documentation
+└── README.md               # This file
 ```
 
-### Fonctions disponibles
+### Module Responsibilities
 
-- `generate_color_grid(dimension)` : Version détaillée avec boucles
-- `generate_color_grid_vectorized(dimension)` : Version optimisée avec numpy
-- `display_grid(grid, title, figsize)` : Affiche la grille dans une fenêtre
-- `save_grid(grid, filename, dpi)` : Sauvegarde la grille en image
+#### 🎨 **`deformed_grid.py`** - Core Engine (366 lines)
+- Main `DeformedGrid` class that orchestrates everything
+- Pygame rendering loop and event handling
+- Grid generation and position calculations
+- Animation timing and state management
+- Fullscreen/windowed mode switching
+- Interactive controls (keyboard shortcuts)
 
-### Exemple rapide
+#### 🎵 **`audio_analyzer.py`** - Audio Processing
+- Real-time microphone input capture using PyAudio
+- FFT analysis for frequency separation
+- Beat detection algorithms
+- Thread-safe audio data sharing
+- Graceful degradation when audio libraries unavailable
 
-```bash
-python generative_art.py
+#### 🌈 **`colors.py`** - Color Generation
+- 10 different color schemes (monochrome, gradient, rainbow, neon, etc.)
+- Position-based color calculations
+- Time-based color animations
+- Audio-reactive color modulation
+- HSV/RGB color space conversions
+
+#### 🌀 **`distortions.py`** - Geometric Engine 
+- 4 distortion algorithms (random, sine, Perlin, circular)
+- Mathematical transformation functions
+- Parameter generation for each square
+- Time-based animation calculations
+- Audio-reactive distortion intensity
+
+#### 🎮 **`demos.py`** - Usage Examples
+- Pre-configured demonstration functions
+- Simple API for quick setup
+- Different preset combinations
+- Command-line interface
+
+#### 📝 **`enums.py`** - Type Safety
+- `DistortionType`: RANDOM, SINE, PERLIN, CIRCULAR
+- `ColorScheme`: MONOCHROME, GRADIENT, RAINBOW, COMPLEMENTARY, TEMPERATURE, PASTEL, NEON, OCEAN, FIRE, FOREST
+
+## 🚀 Quick Start
+
+### Basic Usage
+```python
+from distorsion_movement import quick_demo
+
+# Launch with default settings
+quick_demo()
 ```
 
-Cette commande génère et affiche une grille 64x64 de carrés colorés aléatoirement.
-
-## Personnalisation
-
-Le code est conçu pour être facilement modifiable :
-
-- Changez la `dimension` pour des grilles plus grandes ou plus petites
-- Modifiez la génération de couleurs dans `generate_color_grid()`
-- Ajustez les paramètres d'affichage dans `display_grid()`
-- Expérimentez avec différents algorithmes de couleur
-
-## Grille de carrés déformés géométriquement
-
-Le fichier `deformed_grid.py` implémente une nouvelle fonctionnalité d'art génératif : des grilles de carrés déformés géométriquement.
-
-### Utilisation rapide
-
+### Advanced Configuration
 ```python
-from deformed_grid import create_deformed_grid
+from distorsion_movement import DeformedGrid, DistortionType, ColorScheme
 
-# Créer une grille déformée
-grid = create_deformed_grid(
-    dimension=48,           # Grille 48x48
-    cell_size=12,          # Carrés de 12 pixels
-    distortion_strength=0.4, # Intensité de déformation
-    distortion_fn="sine"    # Type de distorsion
+# Create custom grid
+grid = DeformedGrid(
+    dimension=64,                           # 64x64 grid
+    cell_size=12,                          # 12px squares
+    distortion_strength=0.7,               # 70% distortion
+    distortion_fn=DistortionType.SINE.value,     # Sine wave distortion
+    color_scheme=ColorScheme.NEON.value,         # Neon colors
+    audio_reactive=True,                   # Enable audio reactivity
+    color_animation=True                   # Animate colors
 )
 
-# Lancer l'interface interactive
 grid.run_interactive()
 ```
 
-### Types de distorsion disponibles
-
-- **`"random"`** : Déformation aléatoire statique
-- **`"sine"`** : Distorsion sinusoïdale animée (effet de vague)
-- **`"perlin"`** : Bruit de Perlin pour un effet organique
-- **`"circular"`** : Ondes circulaires depuis le centre
-
-### Contrôles interactifs
-
-- **ESC** : Quitter
-- **SPACE** : Changer le type de distorsion
-- **+/-** : Ajuster l'intensité de distorsion
-- **R** : Régénérer les paramètres aléatoires
-- **S** : Sauvegarder l'image courante
-
-### Démonstrations
-
-Lancez le script de démonstration pour explorer différents exemples :
-
-```bash
-python demo_deformed_grid.py
-```
-
-Le script propose 8 démonstrations différentes :
-1. Démonstration basique (distorsion aléatoire)
-2. Animation sinusoïdale
-3. Effet organique (Perlin)
-4. Ondes circulaires
-5. Haute densité (grille fine)
-6. Couleurs personnalisées
-7. Tremblement minimal (effet subtil)
-8. Export en lot (génération d'images)
-
-### Paramètres avancés
-
+### Available Demo Functions
 ```python
-from deformed_grid import DeformedGrid
+from distorsion_movement import quick_demo, fullscreen_demo, audio_reactive_demo
 
-grid = DeformedGrid(
-    dimension=64,                           # Nombre de cellules par ligne/colonne
-    cell_size=8,                           # Taille moyenne des carrés
-    canvas_size=(800, 600),                # Taille de la fenêtre
-    distortion_strength=0.3,               # Intensité (0.0 à 1.0)
-    distortion_fn="random",                # Type de distorsion
-    background_color=(20, 20, 30),         # Couleur de fond RGB
-    square_color=(255, 255, 255)           # Couleur des carrés RGB
-)
+quick_demo()           # Basic windowed demo
+fullscreen_demo()      # Immersive fullscreen experience  
+audio_reactive_demo()  # Music visualization demo
 ```
 
-## Idées d'extensions
+## 🎛️ Interactive Controls
 
-- Patterns géométriques
-- Gradients de couleur
-- Formes autres que des carrés
-- Animation temporelle
-- Interaction utilisateur
+| Key | Action |
+|-----|--------|
+| `F` | Toggle fullscreen/windowed mode |
+| `M` | Toggle audio reactivity on/off |
+| `C` | Cycle through color schemes |
+| `D` | Cycle through distortion types |
+| `+/-` | Increase/decrease distortion intensity |
+| `A` | Toggle color animation |
+| `R` | Reset to default parameters |
+| `ESC` | Exit application |
 
+## 🎨 Available Visual Modes
 
-## Other ideas:
+### Distortion Types
+- **Random**: Static chaotic displacement
+- **Sine**: Smooth wave-based deformations
+- **Perlin**: Organic, noise-based distortions  
+- **Circular**: Radial distortions from center
 
-🎲 1. Grille avec règles de propagation (style “contagion”)
-	•	Concept : Un carré coloré “contamine” ses voisins avec une certaine couleur ou un effet au fil du temps.
-	•	Résultat : Une sorte d’onde ou de tache de couleur qui se propage dans la grille.
-	•	Originalité : Tu définis tes propres règles de propagation (aléatoire, influence de la couleur voisine, etc.)
+### Color Schemes
+- **Monochrome**: Single color variations
+- **Gradient**: Smooth color transitions
+- **Rainbow**: Full spectrum cycling
+- **Complementary**: Alternating opposite colors
+- **Temperature**: Cool to warm transitions
+- **Pastel**: Soft, muted tones
+- **Neon**: Bright, electric colors
+- **Ocean**: Blue-green aquatic themes
+- **Fire**: Red-orange-yellow flames
+- **Forest**: Green-brown natural tones
 
-⸻
+## 🔧 Dependencies
 
-🧠 2. Influence d’un bruit de Perlin ou Simplex
-	•	Concept : Tu utilises du bruit (comme une texture mathématique douce) pour moduler la couleur, la taille, la rotation des carrés.
-	•	Résultat : Des effets très organiques, qui rappellent des structures naturelles.
-	•	Originalité : Tu mélanges hasard contrôlé + structure.
+### Required
+```
+pygame>=2.1.0
+numpy>=1.21.0
+```
 
-⸻
+### Optional (for audio reactivity)
+```
+pyaudio>=0.2.11
+scipy>=1.7.0
+```
 
-🎨 3. Palette limitée avec contrainte esthétique
-	•	Concept : Tu choisis une palette (genre 4 couleurs de Kandinsky, ou le style Bauhaus) et tu forces les carrés à suivre un pattern (pas plus de 2 couleurs côte à côte, pas 3 fois la même de suite, etc.)
-	•	Résultat : Ça donne des rythmes visuels intéressants.
-	•	Originalité : Le code impose des contraintes artistiques.
+Install with:
+```bash
+pip install pygame numpy
+# For audio features:
+pip install pyaudio scipy
+```
 
-⸻
+## 🎵 Audio-Reactive Features
 
-🧩 4. Grille à déformation géométrique
-	•	Concept : Au lieu d’un carré fixe, chaque cellule est légèrement déformée (distorsion de position, taille, perspective).
-	•	Résultat : Un effet d’illusion ou d’espace qui tremble.
-	•	Originalité : L’ordre apparent de la grille est bousculé.
+When audio reactivity is enabled, the system:
+- Captures real-time microphone input
+- Performs FFT analysis to separate frequency bands
+- Maps audio characteristics to visual parameters
+- Detects beats for synchronized flash effects
+- Smooths audio data to prevent jarring transitions
 
-⸻
+**Note**: Audio features require additional dependencies and microphone permissions.
 
-🌱 5. Évolution générationnelle
-	•	Concept : Tu fais tourner la grille dans le temps : à chaque tick, la grille change (un peu comme une vie cellulaire type “Game of Life”).
-	•	Résultat : Une œuvre animée, auto-évolutive.
-	•	Originalité : Tu n’affiches pas qu’un état, mais un processus.
+## 🧪 Testing
 
-⸻
+Run the test suite:
+```bash
+cd distorsion_movement
+python test_modules.py
+```
 
-🧵 6. Tissage de motifs / glitch
-	•	Concept : Chaque carré devient une “maille” dans un tissage visuel. Tu peux “glitcher” aléatoirement des sections (inversion de couleurs, rotations, miroir).
-	•	Résultat : Un mix entre géométrie stricte et chaos visuel.
-	•	Originalité : Belle tension entre contrôle et rupture.
+## 🛣️ Development Roadmap
 
-⸻
+The project has an extensive roadmap for future enhancements (see `improvements.md`):
 
-👁️ 7. Œil qui regarde
-	•	Concept : Un carré sur la grille suit la souris (ou une zone chaude), les couleurs autour réagissent à sa position.
-	•	Résultat : Une grille “vivante”, qui semble te regarder ou réagir à toi.
-	•	Originalité : Une œuvre interactive minimaliste.
+### Phase 1 (High Priority)
+- Mouse interaction (attraction/repulsion effects)
+- Additional shape types (circles, triangles, polygons)
+- Motion blur and glow effects
+- GIF/MP4 export capabilities
+- Preset scene system
+
+### Phase 2 (Advanced Features)
+- Particle systems and trailing effects
+- GPU acceleration for performance
+- Web version using WebGL
+- VR/AR support for immersive experiences
+- Neural network integration for AI-generated patterns
+
+### Phase 3 (Experimental)
+- Real-time data visualization integration
+- Collaborative multi-user experiences
+- Biometric integration (heart rate, brainwaves)
+- Advanced physics simulation
+
+## 🏆 Key Features
+
+✅ **Real-time Performance**: 60fps rendering with thousands of squares  
+✅ **Modular Architecture**: Clean separation of concerns, easily extensible  
+✅ **Audio Reactivity**: Professional-grade music visualization  
+✅ **Interactive Controls**: Live parameter adjustment  
+✅ **Multiple Visual Modes**: 4 distortion types × 10 color schemes = 40 combinations  
+✅ **Cross-platform**: Works on Windows, macOS, Linux  
+✅ **Graceful Degradation**: Works without audio libraries  
+✅ **Fullscreen Support**: Immersive viewing experience  
+
+## 🎨 Use Cases
+
+- **Live Music Visualization**: DJ performances, concerts, parties
+- **Digital Art Creation**: Generative art projects, installations
+- **Meditation/Relaxation**: Calming visual experiences
+- **Educational**: Mathematics and programming demonstrations
+- **Screensaver**: Beautiful ambient desktop backgrounds
+- **Content Creation**: Background visuals for videos, streams
+
+## 🤝 Contributing
+
+The project is designed for easy extension:
+- Add new distortion algorithms in `distortions.py`
+- Create new color schemes in `colors.py`
+- Enhance audio analysis in `audio_analyzer.py`
+- Build new demo configurations in `demos.py`
+
+---
+
+**Distorsion Movement** transforms mathematical concepts into living, breathing art that responds to sound and user interaction. It's both a technical showcase of real-time graphics programming and a creative tool for generating endless visual experiences.
