@@ -12,6 +12,7 @@ import math
 import random
 from typing import Callable, Tuple, List, Optional
 from enum import Enum
+import colorsys
 
 
 class DistortionType(Enum):
@@ -20,6 +21,20 @@ class DistortionType(Enum):
     SINE = "sine" 
     PERLIN = "perlin"
     CIRCULAR = "circular"
+
+
+class ColorScheme(Enum):
+    """Schémas de couleurs disponibles"""
+    MONOCHROME = "monochrome"
+    GRADIENT = "gradient"
+    RAINBOW = "rainbow"
+    COMPLEMENTARY = "complementary"
+    TEMPERATURE = "temperature"
+    PASTEL = "pastel"
+    NEON = "neon"
+    OCEAN = "ocean"
+    FIRE = "fire"
+    FOREST = "forest"
 
 
 class DeformedGrid:
@@ -34,10 +49,12 @@ class DeformedGrid:
                  dimension: int = 64,
                  cell_size: int = 8,
                  canvas_size: Tuple[int, int] = (1200, 900),
-                 distortion_strength: float = 0.3,
+                 distortion_strength: float = 0.0,
                  distortion_fn: str = "random",
                  background_color: Tuple[int, int, int] = (20, 20, 30),
-                 square_color: Tuple[int, int, int] = (255, 255, 255)):
+                 square_color: Tuple[int, int, int] = (255, 255, 255),
+                 color_scheme: str = "monochrome",
+                 color_animation: bool = False):
         """
         Initialise la grille déformée.
         
@@ -48,7 +65,9 @@ class DeformedGrid:
             distortion_strength: Intensité de la déformation (0.0 à 1.0)
             distortion_fn: Type de fonction de distorsion
             background_color: Couleur de fond RGB
-            square_color: Couleur des carrés RGB
+            square_color: Couleur des carrés RGB (utilisée pour monochrome)
+            color_scheme: Schéma de couleurs ("monochrome", "gradient", "rainbow", etc.)
+            color_animation: Si True, les couleurs changent dans le temps
         """
         self.dimension = dimension
         self.cell_size = cell_size
@@ -57,6 +76,8 @@ class DeformedGrid:
         self.distortion_fn = distortion_fn
         self.background_color = background_color
         self.square_color = square_color
+        self.color_scheme = color_scheme
+        self.color_animation = color_animation
         
         # Calcul automatique du décalage pour centrer la grille
         grid_total_size = dimension * cell_size
@@ -83,6 +104,9 @@ class DeformedGrid:
         # Génération des positions de base et des déformations
         self._generate_base_positions()
         self._generate_distortions()
+        
+        # Génération des couleurs de base pour chaque carré
+        self._generate_base_colors()
     
     def _generate_base_positions(self):
         """Génère les positions de base de la grille régulière"""
@@ -107,6 +131,152 @@ class DeformedGrid:
                 'rotation_phase': random.uniform(0, 2 * math.pi)
             }
             self.distortions.append(distortion_params)
+    
+    def _generate_base_colors(self):
+        """Génère les couleurs de base pour chaque carré selon le schéma choisi"""
+        self.base_colors = []
+        
+        for i in range(self.dimension * self.dimension):
+            row = i // self.dimension
+            col = i % self.dimension
+            
+            # Normalisation des coordonnées (0.0 à 1.0)
+            x_norm = col / (self.dimension - 1) if self.dimension > 1 else 0.5
+            y_norm = row / (self.dimension - 1) if self.dimension > 1 else 0.5
+            
+            # Distance au centre normalisée
+            center_x, center_y = 0.5, 0.5
+            distance_to_center = math.sqrt((x_norm - center_x)**2 + (y_norm - center_y)**2)
+            distance_to_center = min(distance_to_center / 0.707, 1.0)  # Normalise à [0,1]
+            
+            color = self._get_color_for_position(x_norm, y_norm, distance_to_center, i)
+            self.base_colors.append(color)
+    
+    def _get_color_for_position(self, x_norm: float, y_norm: float, 
+                               distance_to_center: float, index: int) -> Tuple[int, int, int]:
+        """
+        Génère une couleur pour une position donnée selon le schéma de couleur actuel.
+        
+        Args:
+            x_norm: Position X normalisée (0.0 à 1.0)
+            y_norm: Position Y normalisée (0.0 à 1.0)
+            distance_to_center: Distance au centre normalisée (0.0 à 1.0)
+            index: Index du carré dans la grille
+            
+        Returns:
+            Tuple RGB (r, g, b)
+        """
+        if self.color_scheme == ColorScheme.MONOCHROME.value:
+            return self.square_color
+            
+        elif self.color_scheme == ColorScheme.GRADIENT.value:
+            # Gradient diagonal du coin supérieur gauche au coin inférieur droit
+            t = (x_norm + y_norm) / 2.0
+            r = int(50 + t * 205)
+            g = int(100 + t * 155)
+            b = int(200 - t * 100)
+            return (r, g, b)
+            
+        elif self.color_scheme == ColorScheme.RAINBOW.value:
+            # Arc-en-ciel basé sur la position
+            hue = (x_norm + y_norm * 0.5) % 1.0
+            r, g, b = colorsys.hsv_to_rgb(hue, 0.8, 0.9)
+            return (int(r * 255), int(g * 255), int(b * 255))
+            
+        elif self.color_scheme == ColorScheme.COMPLEMENTARY.value:
+            # Couleurs complémentaires alternées
+            if (index + (index // self.dimension)) % 2 == 0:
+                return (255, 100, 50)  # Orange
+            else:
+                return (50, 150, 255)  # Bleu
+                
+        elif self.color_scheme == ColorScheme.TEMPERATURE.value:
+            # Couleurs chaudes au centre, froides aux bords
+            temp = 1.0 - distance_to_center
+            if temp > 0.7:
+                # Très chaud - rouge/jaune
+                r, g, b = colorsys.hsv_to_rgb(0.1, 0.8, 1.0)
+            elif temp > 0.4:
+                # Chaud - orange/rouge
+                r, g, b = colorsys.hsv_to_rgb(0.05, 0.9, 0.9)
+            else:
+                # Froid - bleu/violet
+                r, g, b = colorsys.hsv_to_rgb(0.6 + temp * 0.2, 0.7, 0.8)
+            return (int(r * 255), int(g * 255), int(b * 255))
+            
+        elif self.color_scheme == ColorScheme.PASTEL.value:
+            # Couleurs pastel douces
+            hue = (x_norm * 0.3 + y_norm * 0.7) % 1.0
+            r, g, b = colorsys.hsv_to_rgb(hue, 0.3, 0.9)
+            return (int(r * 255), int(g * 255), int(b * 255))
+            
+        elif self.color_scheme == ColorScheme.NEON.value:
+            # Couleurs néon vives
+            hue = (distance_to_center + x_norm * 0.5) % 1.0
+            r, g, b = colorsys.hsv_to_rgb(hue, 1.0, 1.0)
+            return (int(r * 255), int(g * 255), int(b * 255))
+            
+        elif self.color_scheme == ColorScheme.OCEAN.value:
+            # Thème océan - bleus et verts
+            depth = distance_to_center
+            if depth < 0.3:
+                # Eau peu profonde - turquoise
+                return (64, 224, 208)
+            elif depth < 0.7:
+                # Eau moyenne - bleu océan
+                return (0, 119, 190)
+            else:
+                # Eau profonde - bleu foncé
+                return (25, 25, 112)
+                
+        elif self.color_scheme == ColorScheme.FIRE.value:
+            # Thème feu - rouges, oranges, jaunes
+            intensity = 1.0 - distance_to_center + y_norm * 0.3
+            if intensity > 0.8:
+                return (255, 255, 100)  # Jaune chaud
+            elif intensity > 0.5:
+                return (255, 140, 0)    # Orange
+            else:
+                return (220, 20, 60)    # Rouge foncé
+                
+        elif self.color_scheme == ColorScheme.FOREST.value:
+            # Thème forêt - verts variés
+            green_intensity = 0.3 + distance_to_center * 0.7 + x_norm * 0.2
+            if green_intensity > 0.8:
+                return (144, 238, 144)  # Vert clair
+            elif green_intensity > 0.5:
+                return (34, 139, 34)    # Vert forêt
+            else:
+                return (0, 100, 0)      # Vert foncé
+        
+        # Par défaut, retourner blanc
+        return (255, 255, 255)
+    
+    def _get_animated_color(self, base_color: Tuple[int, int, int], 
+                           position_index: int) -> Tuple[int, int, int]:
+        """
+        Applique une animation de couleur si activée.
+        
+        Args:
+            base_color: Couleur de base du carré
+            position_index: Index de position pour variation
+            
+        Returns:
+            Couleur animée ou couleur de base si animation désactivée
+        """
+        if not self.color_animation:
+            return base_color
+            
+        # Animation de luminosité pulsante
+        pulse = math.sin(self.time * 2 + position_index * 0.1) * 0.2 + 1.0
+        pulse = max(0.5, min(1.5, pulse))  # Limite entre 0.5 et 1.5
+        
+        r, g, b = base_color
+        r = int(min(255, r * pulse))
+        g = int(min(255, g * pulse))
+        b = int(min(255, b * pulse))
+        
+        return (r, g, b)
     
     def _apply_distortion_random(self, base_pos: Tuple[float, float], 
                                 params: dict) -> Tuple[float, float, float]:
@@ -219,7 +389,7 @@ class DeformedGrid:
         return positions
     
     def _draw_deformed_square(self, surface, x: float, y: float, 
-                             rotation: float, size: int):
+                             rotation: float, size: int, color: Tuple[int, int, int]):
         """
         Dessine un carré déformé à la position donnée.
         
@@ -228,6 +398,7 @@ class DeformedGrid:
             x, y: Position du centre du carré
             rotation: Rotation en radians
             size: Taille du carré
+            color: Couleur RGB du carré
         """
         # Calcul des coins du carré
         half_size = size // 2
@@ -249,7 +420,7 @@ class DeformedGrid:
             rotated_corners.append((new_x, new_y))
         
         # Dessin du polygone
-        pygame.draw.polygon(surface, self.square_color, rotated_corners)
+        pygame.draw.polygon(surface, color, rotated_corners)
     
     def render(self):
         """Rend la grille déformée sur l'écran"""
@@ -258,9 +429,13 @@ class DeformedGrid:
         # Obtenir toutes les positions déformées
         positions = self._get_distorted_positions()
         
-        # Dessiner chaque carré déformé
-        for x, y, rotation in positions:
-            self._draw_deformed_square(self.screen, x, y, rotation, self.cell_size)
+        # Dessiner chaque carré déformé avec sa couleur
+        for i, (x, y, rotation) in enumerate(positions):
+            # Obtenir la couleur de base et appliquer l'animation si nécessaire
+            base_color = self.base_colors[i]
+            final_color = self._get_animated_color(base_color, i)
+            
+            self._draw_deformed_square(self.screen, x, y, rotation, self.cell_size, final_color)
         
         pygame.display.flip()
     
@@ -276,12 +451,22 @@ class DeformedGrid:
         print("- ESC: Quitter")
         print("- F: Basculer plein écran/fenêtré")
         print("- SPACE: Changer le type de distorsion")
+        print("- C: Changer le schéma de couleurs")
+        print("- A: Activer/désactiver l'animation des couleurs")
         print("- +/-: Ajuster l'intensité de distorsion")
         print("- R: Régénérer les paramètres aléatoires")
         print("- S: Sauvegarder l'image")
         
         distortion_types = [t.value for t in DistortionType]
         current_distortion_index = 0
+        
+        color_schemes = [c.value for c in ColorScheme]
+        current_color_index = 0
+        # Trouver l'index actuel du schéma de couleur
+        try:
+            current_color_index = color_schemes.index(self.color_scheme)
+        except ValueError:
+            current_color_index = 0
         
         while running:
             for event in pygame.event.get():
@@ -295,6 +480,17 @@ class DeformedGrid:
                         current_distortion_index = (current_distortion_index + 1) % len(distortion_types)
                         self.distortion_fn = distortion_types[current_distortion_index]
                         print(f"Distorsion: {self.distortion_fn}")
+                    elif event.key == pygame.K_c:
+                        # Changer le schéma de couleurs
+                        current_color_index = (current_color_index + 1) % len(color_schemes)
+                        self.color_scheme = color_schemes[current_color_index]
+                        self._generate_base_colors()  # Régénérer les couleurs
+                        print(f"Schéma de couleurs: {self.color_scheme}")
+                    elif event.key == pygame.K_a:
+                        # Activer/désactiver l'animation des couleurs
+                        self.color_animation = not self.color_animation
+                        status = "activée" if self.color_animation else "désactivée"
+                        print(f"Animation des couleurs: {status}")
                     elif event.key == pygame.K_PLUS or event.key == pygame.K_EQUALS:
                         # Augmenter l'intensité
                         self.distortion_strength = min(1.0, self.distortion_strength + 0.1)
@@ -306,6 +502,7 @@ class DeformedGrid:
                     elif event.key == pygame.K_r:
                         # Régénérer les paramètres
                         self._generate_distortions()
+                        self._generate_base_colors()
                         print("Paramètres régénérés")
                     elif event.key == pygame.K_s:
                         # Sauvegarder
@@ -352,8 +549,10 @@ class DeformedGrid:
 
 def create_deformed_grid(dimension: int = 64, 
                         cell_size: int = 8,
-                        distortion_strength: float = 0.3,
+                        distortion_strength: float = 0.0,
                         distortion_fn: str = "random",
+                        color_scheme: str = "rainbow",
+                        color_animation: bool = False,
                         fullscreen: bool = False) -> DeformedGrid:
     """
     Crée une grille déformée avec des paramètres simples.
@@ -363,6 +562,8 @@ def create_deformed_grid(dimension: int = 64,
         cell_size: Taille moyenne d'un carré en pixels  
         distortion_strength: Intensité de la déformation (0.0 à 1.0)
         distortion_fn: Type de distorsion ("random", "sine", "perlin", "circular")
+        color_scheme: Schéma de couleurs ("monochrome", "gradient", "rainbow", etc.)
+        color_animation: Si True, les couleurs sont animées
         fullscreen: Si True, démarre directement en plein écran
     
     Returns:
@@ -379,7 +580,9 @@ def create_deformed_grid(dimension: int = 64,
         cell_size=cell_size,
         canvas_size=canvas_size,
         distortion_strength=distortion_strength,
-        distortion_fn=distortion_fn
+        distortion_fn=distortion_fn,
+        color_scheme=color_scheme,
+        color_animation=color_animation
     )
     
     # Si plein écran demandé, l'activer immédiatement
@@ -391,13 +594,15 @@ def create_deformed_grid(dimension: int = 64,
 
 def quick_demo():
     """Démonstration rapide avec paramètres par défaut"""
-    grid = create_deformed_grid(dimension=64, cell_size=16, distortion_strength=0.4)
+    grid = create_deformed_grid(dimension=64, cell_size=16, distortion_strength=0.3, 
+                               color_scheme="rainbow", color_animation=True)
     grid.run_interactive()
 
 
 def fullscreen_demo():
     """Démonstration en plein écran"""
-    grid = create_deformed_grid(dimension=80, cell_size=20, distortion_strength=0.4, fullscreen=True)
+    grid = create_deformed_grid(dimension=80, cell_size=20, distortion_strength=0.4, 
+                               color_scheme="neon", color_animation=True, fullscreen=True)
     grid.run_interactive()
 
 
