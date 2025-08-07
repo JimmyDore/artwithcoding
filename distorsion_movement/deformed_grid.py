@@ -36,7 +36,12 @@ class DeformedGrid:
                  square_color: Tuple[int, int, int] = (255, 255, 255),
                  color_scheme: str = "monochrome",
                  color_animation: bool = False,
-                 audio_reactive: bool = False):
+                 audio_reactive: bool = False,
+                 mouse_interactive: bool = True,
+                 mouse_mode: str = "attraction",
+                 mouse_strength: float = 0.5,
+                 mouse_radius: float = 100.0,
+                 show_mouse_feedback: bool = True):
         """
         Initialise la grille déformée.
         
@@ -51,6 +56,11 @@ class DeformedGrid:
             color_scheme: Schéma de couleurs ("monochrome", "gradient", "rainbow", etc.)
             color_animation: Si True, les couleurs changent dans le temps
             audio_reactive: Si True, réagit à l'audio en temps réel
+            mouse_interactive: Si True, active les interactions souris
+            mouse_mode: Mode d'interaction souris ("attraction", "repulsion", etc.)
+            mouse_strength: Force des interactions souris (0.0 à 1.0)
+            mouse_radius: Rayon d'influence de la souris en pixels
+            show_mouse_feedback: Si True, affiche le feedback visuel de la souris
         """
         self.dimension = dimension
         self.cell_size = cell_size
@@ -62,10 +72,36 @@ class DeformedGrid:
         self.color_scheme = color_scheme
         self.color_animation = color_animation
         self.audio_reactive = audio_reactive
+        self.mouse_interactive = mouse_interactive
+        self.mouse_mode = mouse_mode
+        self.mouse_strength = mouse_strength
+        self.mouse_radius = mouse_radius
+        self.show_mouse_feedback = show_mouse_feedback
         
         # Audio analyzer
         self.audio_analyzer = AudioAnalyzer() if audio_reactive else None
         self.base_distortion_strength = distortion_strength  # Sauvegarde de l'intensité de base
+        
+        # Mouse interaction engine
+        if mouse_interactive:
+            from distorsion_movement.mouse_interactions import MouseInteractionEngine
+            from distorsion_movement.enums import MouseInteractionType, MouseMode
+            
+            # Convertir le mode string en enum
+            try:
+                interaction_type = MouseInteractionType(mouse_mode)
+            except ValueError:
+                interaction_type = MouseInteractionType.ATTRACTION
+            
+            self.mouse_engine = MouseInteractionEngine(
+                interaction_type=interaction_type,
+                mouse_mode=MouseMode.CONTINUOUS,
+                strength=mouse_strength,
+                radius=mouse_radius,
+                show_feedback=show_mouse_feedback
+            )
+        else:
+            self.mouse_engine = None
         
         # Calcul automatique du décalage pour centrer la grille
         grid_total_size = dimension * cell_size
@@ -146,15 +182,46 @@ class DeformedGrid:
         Returns:
             Liste de tuples (x, y, rotation) pour chaque carré
         """
-        return DistortionEngine.get_distorted_positions(
+        # Calculer les positions de base avec la distorsion principale
+        base_distorted = DistortionEngine.get_distorted_positions(
             self.base_positions,
             self.distortions,
             self.distortion_fn,
             self.cell_size,
             self.distortion_strength,
             self.time,
-            self.canvas_size
+            self.canvas_size,
+            self.mouse_engine
         )
+        
+        # Appliquer les forces de souris de manière additive si activées
+        if (self.mouse_interactive and self.mouse_engine and 
+            self.distortion_fn not in ["mouse_attraction", "mouse_repulsion"]):
+            
+            final_positions = []
+            for i, (x, y, rotation) in enumerate(base_distorted):
+                # Calculer la force de souris pour cette position
+                mouse_force = self.mouse_engine.calculate_mouse_force((x, y))
+                
+                # Appliquer la force avec un facteur d'échelle
+                force_multiplier = self.cell_size * self.mouse_strength * 5.0
+                mouse_dx = mouse_force[0] * force_multiplier
+                mouse_dy = mouse_force[1] * force_multiplier
+                
+                # Rotation additionnelle basée sur la force
+                force_magnitude = math.sqrt(mouse_force[0]**2 + mouse_force[1]**2)
+                mouse_rotation = force_magnitude * self.mouse_strength * 0.3
+                
+                # Combiner les déformations
+                final_x = x + mouse_dx
+                final_y = y + mouse_dy
+                final_rotation = rotation + mouse_rotation
+                
+                final_positions.append((final_x, final_y, final_rotation))
+            
+            return final_positions
+        
+        return base_distorted
     
     def _draw_deformed_square(self, surface, x: float, y: float, 
                              rotation: float, size: int, color: Tuple[int, int, int]):
@@ -252,6 +319,13 @@ class DeformedGrid:
         print("- +/-: Ajuster l'intensité de distorsion")
         print("- R: Régénérer les paramètres aléatoires")
         print("- S: Sauvegarder l'image")
+        if self.mouse_interactive:
+            print("\nContrôles souris:")
+            print("- Mouvement souris: Interaction continue")
+            print("- Clic gauche: Effet d'ondulation")
+            print("- Clic droit: Effet d'explosion")
+            print("- TAB: Basculer interactions souris")
+            print("- 1-7: Changer mode d'interaction")
         
         distortion_types = [t.value for t in DistortionType]
         current_distortion_index = 0
@@ -265,7 +339,14 @@ class DeformedGrid:
             current_color_index = 0
         
         while running:
-            for event in pygame.event.get():
+            # Collecter les événements
+            events = pygame.event.get()
+            
+            # Traiter les événements souris si activées
+            if self.mouse_engine:
+                self.mouse_engine.update_mouse_state(events)
+            
+            for event in events:
                 if event.type == pygame.QUIT:
                     running = False
                 elif event.type == pygame.KEYDOWN:
@@ -327,6 +408,25 @@ class DeformedGrid:
                         self.toggle_fullscreen()
                         mode = "plein écran" if self.is_fullscreen else "fenêtré"
                         print(f"Mode: {mode}")
+                    elif event.key == pygame.K_TAB:
+                        # Basculer les interactions souris
+                        if self.mouse_engine:
+                            from distorsion_movement.enums import MouseMode
+                            if self.mouse_engine.mouse_mode == MouseMode.DISABLED:
+                                self.mouse_engine.set_mouse_mode(MouseMode.CONTINUOUS)
+                                print("🖱️ Interactions souris activées")
+                            else:
+                                self.mouse_engine.set_mouse_mode(MouseMode.DISABLED)
+                                print("🚫 Interactions souris désactivées")
+                    elif event.key >= pygame.K_1 and event.key <= pygame.K_7:
+                        # Changer le mode d'interaction souris (1-7)
+                        if self.mouse_engine:
+                            from distorsion_movement.enums import MouseInteractionType
+                            interaction_types = list(MouseInteractionType)
+                            key_index = event.key - pygame.K_1
+                            if key_index < len(interaction_types):
+                                self.mouse_engine.set_interaction_type(interaction_types[key_index])
+                                print(f"🖱️ Mode souris: {interaction_types[key_index].value}")
             
             self.update()
             self.render()

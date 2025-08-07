@@ -57,6 +57,23 @@ def sample_colors():
     ]
 
 
+@pytest.fixture
+def sample_mouse_positions():
+    """Provide sample mouse positions for testing."""
+    return [
+        (0, 0),
+        (100, 100), 
+        (200, 150),
+        (50, 75)
+    ]
+
+
+@pytest.fixture
+def mock_pygame_events():
+    """Mock pygame events for mouse interaction testing."""
+    return []
+
+
 # Configure pytest markers
 def pytest_configure(config):
     """Configure custom pytest markers."""

@@ -186,6 +186,7 @@
 - [ ] Mouse interaction (attraction/repulsion)
 - [ ] GIF/MP4 export
 - [ ] Additional shape types (circles, triangles)
+- [ ] Add new distortion types
 - [ ] Motion blur effects
 - [ ] Preset scene system
 - [ ] Audio reactive features

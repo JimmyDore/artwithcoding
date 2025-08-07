@@ -161,13 +161,130 @@ class DistortionEngine:
         return (base_pos[0] + dx, base_pos[1] + dy, rotation)
     
     @staticmethod
+    def apply_distortion_mouse_attraction(base_pos: Tuple[float, float],
+                                        params: dict,
+                                        cell_size: int,
+                                        distortion_strength: float,
+                                        time: float,
+                                        mouse_engine) -> Tuple[float, float, float]:
+        """
+        Applique une distorsion d'attraction basée sur la souris.
+        
+        Args:
+            base_pos: Position de base (x, y)
+            params: Paramètres de distorsion
+            cell_size: Taille de la cellule
+            distortion_strength: Intensité de distorsion
+            time: Temps actuel pour l'animation
+            mouse_engine: Instance du moteur d'interaction souris
+        
+        Returns:
+            Tuple[x, y, rotation] - Position déformée et rotation
+        """
+        if mouse_engine is None:
+            return (base_pos[0], base_pos[1], 0)
+        
+        # Obtenir la force de la souris
+        mouse_force = mouse_engine.calculate_mouse_force(base_pos)
+        
+        # Appliquer la force avec l'intensité de distorsion
+        force_multiplier = cell_size * distortion_strength * 10.0  # Facteur d'échelle
+        dx = mouse_force[0] * force_multiplier
+        dy = mouse_force[1] * force_multiplier
+        
+        # Rotation basée sur l'intensité de la force
+        force_magnitude = math.sqrt(mouse_force[0]**2 + mouse_force[1]**2)
+        rotation = force_magnitude * distortion_strength * 0.5
+        
+        return (base_pos[0] + dx, base_pos[1] + dy, rotation)
+    
+    @staticmethod
+    def apply_distortion_mouse_repulsion(base_pos: Tuple[float, float],
+                                       params: dict,
+                                       cell_size: int,
+                                       distortion_strength: float,
+                                       time: float,
+                                       mouse_engine) -> Tuple[float, float, float]:
+        """
+        Applique une distorsion de répulsion basée sur la souris.
+        
+        Args:
+            base_pos: Position de base (x, y)
+            params: Paramètres de distorsion
+            cell_size: Taille de la cellule
+            distortion_strength: Intensité de distorsion
+            time: Temps actuel pour l'animation
+            mouse_engine: Instance du moteur d'interaction souris
+        
+        Returns:
+            Tuple[x, y, rotation] - Position déformée et rotation
+        """
+        if mouse_engine is None:
+            return (base_pos[0], base_pos[1], 0)
+        
+        # Changer temporairement le type d'interaction pour la répulsion
+        original_type = mouse_engine.interaction_type
+        from distorsion_movement.enums import MouseInteractionType
+        mouse_engine.interaction_type = MouseInteractionType.REPULSION
+        
+        # Obtenir la force de répulsion
+        mouse_force = mouse_engine.calculate_mouse_force(base_pos)
+        
+        # Restaurer le type original
+        mouse_engine.interaction_type = original_type
+        
+        # Appliquer la force avec l'intensité de distorsion
+        force_multiplier = cell_size * distortion_strength * 10.0  # Facteur d'échelle
+        dx = mouse_force[0] * force_multiplier
+        dy = mouse_force[1] * force_multiplier
+        
+        # Rotation basée sur l'intensité de la force
+        force_magnitude = math.sqrt(mouse_force[0]**2 + mouse_force[1]**2)
+        rotation = force_magnitude * distortion_strength * 0.5
+        
+        return (base_pos[0] + dx, base_pos[1] + dy, rotation)
+    
+    @staticmethod
+    def apply_mouse_distortion(base_pos: Tuple[float, float],
+                             params: dict,
+                             cell_size: int,
+                             distortion_strength: float,
+                             time: float,
+                             mouse_engine,
+                             interaction_type: str = "attraction") -> Tuple[float, float, float]:
+        """
+        Dispatcher générique pour les distorsions de souris.
+        
+        Args:
+            base_pos: Position de base (x, y)
+            params: Paramètres de distorsion
+            cell_size: Taille de la cellule
+            distortion_strength: Intensité de distorsion
+            time: Temps actuel pour l'animation
+            mouse_engine: Instance du moteur d'interaction souris
+            interaction_type: Type d'interaction ("attraction" ou "repulsion")
+        
+        Returns:
+            Tuple[x, y, rotation] - Position déformée et rotation
+        """
+        if interaction_type == "repulsion":
+            return DistortionEngine.apply_distortion_mouse_repulsion(
+                base_pos, params, cell_size, distortion_strength, time, mouse_engine
+            )
+        else:
+            return DistortionEngine.apply_distortion_mouse_attraction(
+                base_pos, params, cell_size, distortion_strength, time, mouse_engine
+            )
+    
+    @staticmethod
     def get_distorted_positions(base_positions: List[Tuple[float, float]],
                                distortion_params: List[dict],
                                distortion_fn: str,
                                cell_size: int,
                                distortion_strength: float,
                                time: float,
-                               canvas_size: Tuple[int, int]) -> List[Tuple[float, float, float]]:
+                               canvas_size: Tuple[int, int],
+                               mouse_engine=None) -> List[Tuple[float, float, float]]:
         """
         Calcule toutes les positions déformées selon la fonction choisie.
         
@@ -179,6 +296,7 @@ class DistortionEngine:
             distortion_strength: Intensité de distorsion
             time: Temps actuel pour l'animation
             canvas_size: Taille du canvas
+            mouse_engine: Instance du moteur d'interaction souris (optionnel)
         
         Returns:
             Liste de tuples (x, y, rotation) pour chaque carré
@@ -201,6 +319,14 @@ class DistortionEngine:
             elif distortion_fn == DistortionType.CIRCULAR.value:
                 pos = DistortionEngine.apply_distortion_circular(
                     base_pos, params, cell_size, distortion_strength, time, canvas_size
+                )
+            elif distortion_fn == DistortionType.MOUSE_ATTRACTION.value:
+                pos = DistortionEngine.apply_distortion_mouse_attraction(
+                    base_pos, params, cell_size, distortion_strength, time, mouse_engine
+                )
+            elif distortion_fn == DistortionType.MOUSE_REPULSION.value:
+                pos = DistortionEngine.apply_distortion_mouse_repulsion(
+                    base_pos, params, cell_size, distortion_strength, time, mouse_engine
                 )
             else:
                 pos = DistortionEngine.apply_distortion_random(
