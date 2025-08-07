@@ -3,7 +3,7 @@ Unit tests for enums module.
 """
 
 import pytest
-from distorsion_movement.enums import DistortionType, ColorScheme
+from distorsion_movement.enums import DistortionType, ColorScheme, ShapeType
 
 
 class TestDistortionType:
@@ -57,3 +57,38 @@ class TestColorScheme:
         assert ColorScheme.MONOCHROME in schemes
         assert ColorScheme.RAINBOW in schemes
         assert ColorScheme.NEON in schemes
+
+
+class TestShapeType:
+    """Test cases for ShapeType enum."""
+    
+    def test_shape_type_values(self):
+        """Test that all shape types have correct values."""
+        assert ShapeType.SQUARE.value == "square"
+        assert ShapeType.CIRCLE.value == "circle"
+        assert ShapeType.TRIANGLE.value == "triangle"
+        assert ShapeType.HEXAGON.value == "hexagon"
+        assert ShapeType.STAR.value == "star"
+        assert ShapeType.PENTAGON.value == "pentagon"
+        assert ShapeType.DIAMOND.value == "diamond"
+    
+    def test_shape_type_count(self):
+        """Test that we have the expected number of shape types."""
+        assert len(ShapeType) == 7
+    
+    def test_shape_type_iteration(self):
+        """Test that we can iterate over all shape types."""
+        shapes = list(ShapeType)
+        assert len(shapes) == 7
+        assert ShapeType.SQUARE in shapes
+        assert ShapeType.CIRCLE in shapes
+        assert ShapeType.TRIANGLE in shapes
+        assert ShapeType.HEXAGON in shapes
+        assert ShapeType.STAR in shapes
+        assert ShapeType.PENTAGON in shapes
+        assert ShapeType.DIAMOND in shapes
+    
+    def test_shape_type_default(self):
+        """Test that SQUARE is available as default shape."""
+        assert ShapeType.SQUARE in list(ShapeType)
+        assert ShapeType.SQUARE.value == "square"

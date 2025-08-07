@@ -166,13 +166,13 @@ class TestDeformedGrid:
             assert isinstance(rotation, (int, float))
     
     @patch('pygame.draw.polygon')
-    def test_draw_deformed_square(self, mock_draw_polygon):
-        """Test drawing a deformed square."""
-        grid = DeformedGrid(dimension=2)
+    def test_draw_shape_square(self, mock_draw_polygon):
+        """Test drawing a square shape."""
+        grid = DeformedGrid(dimension=2, shape_type="square")
         mock_surface = MagicMock()
         
-        grid._draw_deformed_square(
-            mock_surface, 100.0, 100.0, 0.0, 20, (255, 255, 255)
+        grid._draw_shape(
+            mock_surface, 100.0, 100.0, 0.0, 20, (255, 255, 255), "square"
         )
         
         # Should call pygame.draw.polygon
@@ -184,48 +184,48 @@ class TestDeformedGrid:
         points = args[2]
         assert len(points) == 4  # Square has 4 corners
     
-    @patch('pygame.draw.polygon')
-    def test_draw_deformed_square_with_rotation(self, mock_draw_polygon):
-        """Test drawing a rotated square."""
-        grid = DeformedGrid(dimension=2)
+    @patch('pygame.draw.circle')
+    def test_draw_shape_circle(self, mock_draw_circle):
+        """Test drawing a circle shape."""
+        grid = DeformedGrid(dimension=2, shape_type="circle")
         mock_surface = MagicMock()
         
-        grid._draw_deformed_square(
-            mock_surface, 100.0, 100.0, math.pi/4, 20, (255, 0, 0)
+        grid._draw_shape(
+            mock_surface, 100.0, 100.0, 0.0, 20, (255, 0, 0), "circle"
         )
         
-        mock_draw_polygon.assert_called_once()
-        args = mock_draw_polygon.call_args[0]
+        mock_draw_circle.assert_called_once()
+        args = mock_draw_circle.call_args[0]
+        assert args[0] == mock_surface  # surface
         assert args[1] == (255, 0, 0)  # color
         
-        # Points should be different from non-rotated case
-        points = args[2]
-        assert len(points) == 4
-        
-        # With 45-degree rotation, corners should be at different positions
-        # This is a basic check that rotation is applied
-        assert points[0] != (90, 90)  # Top-left corner should be rotated
+        # For circles, the third argument should be the position and radius
+        # args structure: (surface, color, (center_x, center_y), radius)
+        position = args[2]
+        radius = args[3]
+        assert position == (100, 100)  # center position
+        assert radius == 10  # size//2
     
     @patch('pygame.draw.polygon', side_effect=ValueError("Invalid polygon"))
     @patch('pygame.draw.rect')
     @patch('pygame.Rect')
-    def test_draw_deformed_square_error_handling(self, mock_rect, mock_draw_rect, mock_draw_polygon):
-        """Test error handling in square drawing."""
-        grid = DeformedGrid(dimension=2)
+    def test_draw_shape_error_handling(self, mock_rect, mock_draw_rect, mock_draw_polygon):
+        """Test error handling in shape drawing."""
+        grid = DeformedGrid(dimension=2, shape_type="square")
         mock_surface = MagicMock()
         mock_rect.return_value = MagicMock()
         
         # Should not raise exception even if pygame.draw.polygon fails
-        grid._draw_deformed_square(
-            mock_surface, 100.0, 100.0, 0.0, 20, (255, 255, 255)
+        grid._draw_shape(
+            mock_surface, 100.0, 100.0, 0.0, 20, (255, 255, 255), "square"
         )
         
         # Should fall back to drawing a rectangle
         mock_draw_rect.assert_called_once()
     
-    def test_draw_deformed_square_invalid_coordinates(self):
-        """Test drawing square with invalid coordinates."""
-        grid = DeformedGrid(dimension=2)
+    def test_draw_shape_invalid_coordinates(self):
+        """Test drawing shape with invalid coordinates."""
+        grid = DeformedGrid(dimension=2, shape_type="square")
         mock_surface = MagicMock()
         
         # Should handle NaN/Inf coordinates gracefully
@@ -236,13 +236,41 @@ class TestDeformedGrid:
             # The method will try to convert NaN to int, which will raise ValueError
             # But this should be caught and handled
             try:
-                grid._draw_deformed_square(
-                    mock_surface, float('nan'), float('inf'), 0.0, 20, (255, 255, 255)
+                grid._draw_shape(
+                    mock_surface, float('nan'), float('inf'), 0.0, 20, (255, 255, 255), "square"
                 )
                 # If we reach here, the error was handled
             except ValueError:
                 # This is expected behavior - NaN can't be converted to int
                 pass
+    
+    def test_shape_types_generation(self):
+        """Test shape types generation for single and mixed modes."""
+        # Test single shape mode
+        grid = DeformedGrid(dimension=3, shape_type="circle", mixed_shapes=False)
+        assert len(grid.shape_types) == 9  # 3x3 grid
+        assert all(shape == "circle" for shape in grid.shape_types)
+        
+        # Test mixed shapes mode
+        grid_mixed = DeformedGrid(dimension=2, shape_type="star", mixed_shapes=True)
+        assert len(grid_mixed.shape_types) == 4  # 2x2 grid
+        # In mixed mode, we should have variety (though random, so we can't test exact values)
+        # But we can test that the main shape type is still set
+        assert grid_mixed.shape_type == "star"
+        assert grid_mixed.mixed_shapes == True
+    
+    def test_shape_cycling(self):
+        """Test that shape types can be regenerated."""
+        grid = DeformedGrid(dimension=2, shape_type="square", mixed_shapes=False)
+        original_shapes = grid.shape_types.copy()
+        
+        # Change shape type and regenerate
+        grid.shape_type = "triangle"
+        grid._generate_shape_types()
+        
+        # All shapes should now be triangles
+        assert all(shape == "triangle" for shape in grid.shape_types)
+        assert grid.shape_types != original_shapes
     
     def test_centering_calculation(self):
         """Test that grid is properly centered."""

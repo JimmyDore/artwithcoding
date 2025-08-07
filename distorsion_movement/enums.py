@@ -1,5 +1,5 @@
 """
-Énumérations pour les types de distorsion et schémas de couleurs.
+Énumérations pour les types de distorsion, schémas de couleurs et formes.
 """
 
 from enum import Enum
@@ -25,3 +25,14 @@ class ColorScheme(Enum):
     OCEAN = "ocean"
     FIRE = "fire"
     FOREST = "forest"
+
+
+class ShapeType(Enum):
+    """Types de formes disponibles"""
+    SQUARE = "square"
+    CIRCLE = "circle"
+    TRIANGLE = "triangle"
+    HEXAGON = "hexagon"
+    STAR = "star"
+    PENTAGON = "pentagon"
+    DIAMOND = "diamond"

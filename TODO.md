@@ -183,13 +183,18 @@
 - [X] Global README to explain the project 
 - [X] Write a few tests
 - [X] Write a task file to run tests and to run the demos
-- [ ] Additional shape types (circles, triangles)
-- [ ] Add new distortion types
+- [X] Additional shape types (circles, triangles)
+- [ ] Open the command guide with a key
 - [ ] GIF/MP4 export
+- [ ] Add new distortion types
+
+
 - [ ] Mouse interaction (attraction/repulsion)
+  - in a pull request, not working well
+- [ ] Audio reactive features
+  - in the code, but really buggy
 - [ ] Motion blur effects
 - [ ] Preset scene system
-- [ ] Audio reactive features
 - [ ] Particle systems
 - [ ] Advanced distortion types
 - [ ] GIF/MP4 export

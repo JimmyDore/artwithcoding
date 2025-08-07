@@ -1,0 +1,281 @@
+"""
+Moteur de rendu pour différents types de formes géométriques.
+
+Ce module fournit des fonctions pour dessiner diverses formes géométriques
+avec support de la rotation, du dimensionnement et du positionnement.
+"""
+
+import pygame
+import math
+import numpy as np
+from typing import Tuple, List
+
+
+class ShapeRenderer:
+    """Moteur de rendu pour différentes formes géométriques."""
+    
+    @staticmethod
+    def draw_square(surface, x: float, y: float, rotation: float, size: int, color: Tuple[int, int, int]):
+        """
+        Dessine un carré avec rotation.
+        
+        Args:
+            surface: Surface pygame où dessiner
+            x, y: Position du centre
+            rotation: Rotation en radians
+            size: Taille du carré
+            color: Couleur RGB
+        """
+        half_size = size // 2
+        corners = [
+            (-half_size, -half_size),
+            (half_size, -half_size),
+            (half_size, half_size),
+            (-half_size, half_size)
+        ]
+        
+        rotated_corners = ShapeRenderer._rotate_points(corners, rotation, x, y)
+        
+        if len(rotated_corners) >= 3:
+            try:
+                pygame.draw.polygon(surface, color, rotated_corners)
+            except (TypeError, ValueError):
+                # Fallback: dessiner un petit rectangle centré
+                rect = pygame.Rect(int(x) - 2, int(y) - 2, 4, 4)
+                pygame.draw.rect(surface, color, rect)
+    
+    @staticmethod
+    def draw_circle(surface, x: float, y: float, rotation: float, size: int, color: Tuple[int, int, int]):
+        """
+        Dessine un cercle (la rotation n'affecte pas un cercle parfait).
+        
+        Args:
+            surface: Surface pygame où dessiner
+            x, y: Position du centre
+            rotation: Rotation en radians (ignorée pour les cercles)
+            size: Diamètre du cercle
+            color: Couleur RGB
+        """
+        try:
+            radius = max(1, size // 2)
+            pygame.draw.circle(surface, color, (int(x), int(y)), radius)
+        except (TypeError, ValueError):
+            # Fallback: dessiner un petit rectangle centré
+            rect = pygame.Rect(int(x) - 2, int(y) - 2, 4, 4)
+            pygame.draw.rect(surface, color, rect)
+    
+    @staticmethod
+    def draw_triangle(surface, x: float, y: float, rotation: float, size: int, color: Tuple[int, int, int]):
+        """
+        Dessine un triangle équilatéral avec rotation.
+        
+        Args:
+            surface: Surface pygame où dessiner
+            x, y: Position du centre
+            rotation: Rotation en radians
+            size: Taille du triangle (rayon du cercle circonscrit)
+            color: Couleur RGB
+        """
+        radius = size // 2
+        # Triangle équilatéral avec un sommet vers le haut
+        corners = []
+        for i in range(3):
+            angle = (2 * math.pi * i / 3) - math.pi/2  # Commencer par le haut
+            corner_x = radius * math.cos(angle)
+            corner_y = radius * math.sin(angle)
+            corners.append((corner_x, corner_y))
+        
+        rotated_corners = ShapeRenderer._rotate_points(corners, rotation, x, y)
+        
+        if len(rotated_corners) >= 3:
+            try:
+                pygame.draw.polygon(surface, color, rotated_corners)
+            except (TypeError, ValueError):
+                # Fallback
+                rect = pygame.Rect(int(x) - 2, int(y) - 2, 4, 4)
+                pygame.draw.rect(surface, color, rect)
+    
+    @staticmethod
+    def draw_hexagon(surface, x: float, y: float, rotation: float, size: int, color: Tuple[int, int, int]):
+        """
+        Dessine un hexagone régulier avec rotation.
+        
+        Args:
+            surface: Surface pygame où dessiner
+            x, y: Position du centre
+            rotation: Rotation en radians
+            size: Taille de l'hexagone (rayon du cercle circonscrit)
+            color: Couleur RGB
+        """
+        radius = size // 2
+        corners = []
+        for i in range(6):
+            angle = 2 * math.pi * i / 6
+            corner_x = radius * math.cos(angle)
+            corner_y = radius * math.sin(angle)
+            corners.append((corner_x, corner_y))
+        
+        rotated_corners = ShapeRenderer._rotate_points(corners, rotation, x, y)
+        
+        if len(rotated_corners) >= 3:
+            try:
+                pygame.draw.polygon(surface, color, rotated_corners)
+            except (TypeError, ValueError):
+                # Fallback
+                rect = pygame.Rect(int(x) - 2, int(y) - 2, 4, 4)
+                pygame.draw.rect(surface, color, rect)
+    
+    @staticmethod
+    def draw_pentagon(surface, x: float, y: float, rotation: float, size: int, color: Tuple[int, int, int]):
+        """
+        Dessine un pentagone régulier avec rotation.
+        
+        Args:
+            surface: Surface pygame où dessiner
+            x, y: Position du centre
+            rotation: Rotation en radians
+            size: Taille du pentagone (rayon du cercle circonscrit)
+            color: Couleur RGB
+        """
+        radius = size // 2
+        corners = []
+        for i in range(5):
+            angle = (2 * math.pi * i / 5) - math.pi/2  # Commencer par le haut
+            corner_x = radius * math.cos(angle)
+            corner_y = radius * math.sin(angle)
+            corners.append((corner_x, corner_y))
+        
+        rotated_corners = ShapeRenderer._rotate_points(corners, rotation, x, y)
+        
+        if len(rotated_corners) >= 3:
+            try:
+                pygame.draw.polygon(surface, color, rotated_corners)
+            except (TypeError, ValueError):
+                # Fallback
+                rect = pygame.Rect(int(x) - 2, int(y) - 2, 4, 4)
+                pygame.draw.rect(surface, color, rect)
+    
+    @staticmethod
+    def draw_star(surface, x: float, y: float, rotation: float, size: int, color: Tuple[int, int, int]):
+        """
+        Dessine une étoile à 5 branches avec rotation.
+        
+        Args:
+            surface: Surface pygame où dessiner
+            x, y: Position du centre
+            rotation: Rotation en radians
+            size: Taille de l'étoile (rayon du cercle circonscrit externe)
+            color: Couleur RGB
+        """
+        outer_radius = size // 2
+        inner_radius = outer_radius * 0.4  # Rayon interne plus petit
+        
+        corners = []
+        for i in range(10):  # 5 points externes + 5 points internes
+            angle = (2 * math.pi * i / 10) - math.pi/2  # Commencer par le haut
+            if i % 2 == 0:  # Points externes
+                radius = outer_radius
+            else:  # Points internes
+                radius = inner_radius
+            
+            corner_x = radius * math.cos(angle)
+            corner_y = radius * math.sin(angle)
+            corners.append((corner_x, corner_y))
+        
+        rotated_corners = ShapeRenderer._rotate_points(corners, rotation, x, y)
+        
+        if len(rotated_corners) >= 3:
+            try:
+                pygame.draw.polygon(surface, color, rotated_corners)
+            except (TypeError, ValueError):
+                # Fallback
+                rect = pygame.Rect(int(x) - 2, int(y) - 2, 4, 4)
+                pygame.draw.rect(surface, color, rect)
+    
+    @staticmethod
+    def draw_diamond(surface, x: float, y: float, rotation: float, size: int, color: Tuple[int, int, int]):
+        """
+        Dessine un losange (carré à 45°) avec rotation.
+        
+        Args:
+            surface: Surface pygame où dessiner
+            x, y: Position du centre
+            rotation: Rotation en radians
+            size: Taille du losange
+            color: Couleur RGB
+        """
+        half_size = size // 2
+        # Losange = carré tourné de 45°
+        base_rotation = math.pi / 4  # 45 degrés
+        total_rotation = rotation + base_rotation
+        
+        corners = [
+            (-half_size, -half_size),
+            (half_size, -half_size),
+            (half_size, half_size),
+            (-half_size, half_size)
+        ]
+        
+        rotated_corners = ShapeRenderer._rotate_points(corners, total_rotation, x, y)
+        
+        if len(rotated_corners) >= 3:
+            try:
+                pygame.draw.polygon(surface, color, rotated_corners)
+            except (TypeError, ValueError):
+                # Fallback
+                rect = pygame.Rect(int(x) - 2, int(y) - 2, 4, 4)
+                pygame.draw.rect(surface, color, rect)
+    
+    @staticmethod
+    def _rotate_points(points: List[Tuple[float, float]], rotation: float, 
+                      center_x: float, center_y: float) -> List[Tuple[int, int]]:
+        """
+        Applique une rotation à une liste de points autour d'un centre.
+        
+        Args:
+            points: Liste de tuples (x, y) relatifs au centre
+            rotation: Angle de rotation en radians
+            center_x, center_y: Centre de rotation
+            
+        Returns:
+            Liste de points rotés en coordonnées absolues (entiers)
+        """
+        rotated_points = []
+        cos_r = math.cos(rotation)
+        sin_r = math.sin(rotation)
+        
+        for point_x, point_y in points:
+            new_x = point_x * cos_r - point_y * sin_r + center_x
+            new_y = point_x * sin_r + point_y * cos_r + center_y
+            
+            # Validation des coordonnées (éviter NaN/Inf)
+            if math.isfinite(new_x) and math.isfinite(new_y):
+                rotated_points.append((int(new_x), int(new_y)))
+            else:
+                # Fallback vers la position centrale si coordonnées invalides
+                rotated_points.append((int(center_x), int(center_y)))
+        
+        return rotated_points
+
+
+def get_shape_renderer_function(shape_type: str):
+    """
+    Retourne la fonction de rendu correspondant au type de forme.
+    
+    Args:
+        shape_type: Type de forme (valeur de ShapeType)
+        
+    Returns:
+        Fonction de rendu appropriée
+    """
+    shape_functions = {
+        "square": ShapeRenderer.draw_square,
+        "circle": ShapeRenderer.draw_circle,
+        "triangle": ShapeRenderer.draw_triangle,
+        "hexagon": ShapeRenderer.draw_hexagon,
+        "pentagon": ShapeRenderer.draw_pentagon,
+        "star": ShapeRenderer.draw_star,
+        "diamond": ShapeRenderer.draw_diamond,
+    }
+    
+    return shape_functions.get(shape_type, ShapeRenderer.draw_square)
