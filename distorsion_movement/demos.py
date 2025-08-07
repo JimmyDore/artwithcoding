@@ -76,13 +76,13 @@ def fullscreen_demo():
     grid = create_deformed_grid(
         dimension=80, 
         cell_size=20, 
-        distortion_strength=0.8, 
-        distortion_fn="sine",
-        color_scheme="neon", 
+        distortion_strength=1, 
+        distortion_fn="circular",
+        color_scheme="complementary", 
         color_animation=True, 
         fullscreen=True,
-        shape_type="circle",  # Commencer avec des cercles
-        mixed_shapes=True     # Formes mixtes activées
+        shape_type="square",  # Commencer avec des carrés
+        mixed_shapes=False     # Formes mixtes activées
     )
     print("\n🔷 NOUVELLES FORMES DISPONIBLES!")
     print("🎮 Utilisez 'H' pour changer de forme:")

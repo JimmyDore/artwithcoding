@@ -83,6 +83,10 @@ class DeformedGrid:
         self.time = 0.0
         self.animation_speed = 0.02
         
+        # Variables pour le menu d'aide
+        self.show_help = False
+        self.help_font = None
+        
         # Initialisation pygame
         pygame.init()
         # Get screen info for fullscreen
@@ -95,6 +99,10 @@ class DeformedGrid:
         self.screen = pygame.display.set_mode(canvas_size)
         pygame.display.set_caption("Grille Déformée - Art Génératif")
         self.clock = pygame.time.Clock()
+        
+        # Initialiser la police pour le menu d'aide
+        self.help_font = pygame.font.Font(None, 24)
+        self.help_title_font = pygame.font.Font(None, 32)
         
         # Génération des positions de base et des déformations
         self._generate_base_positions()
@@ -200,6 +208,84 @@ class DeformedGrid:
         # Dessiner la forme
         shape_function(surface, x, y, rotation, size, color)
     
+    def _render_help_menu(self):
+        """
+        Affiche le menu d'aide par-dessus la grille.
+        """
+        if not self.show_help:
+            return
+        
+        # Créer une surface semi-transparente pour l'arrière-plan
+        current_size = self.screen.get_size()
+        overlay = pygame.Surface(current_size)
+        overlay.set_alpha(200)  # Semi-transparent
+        overlay.fill((0, 0, 0))  # Noir
+        self.screen.blit(overlay, (0, 0))
+        
+        # Titre du menu d'aide
+        title_text = self.help_title_font.render("AIDE - Contrôles disponibles", True, (255, 255, 255))
+        title_rect = title_text.get_rect(center=(current_size[0] // 2, 50))
+        self.screen.blit(title_text, title_rect)
+        
+        # Définir les contrôles et leurs descriptions
+        controls = [
+            ("Navigation & Interface", [
+                ("ESC", "Quitter l'application"),
+                ("F", "Basculer plein écran/fenêtré"),
+                ("I ou TAB", "Afficher/masquer cette aide"),
+            ]),
+            ("Distorsion & Animation", [
+                ("ESPACE", "Changer le type de distorsion"),
+                ("+/-", "Ajuster l'intensité de distorsion"),
+                ("R", "Régénérer les paramètres aléatoires"),
+            ]),
+            ("Couleurs", [
+                ("C", "Changer le schéma de couleurs"),
+                ("A", "Activer/désactiver l'animation des couleurs"),
+            ]),
+            ("Formes", [
+                ("H", "Changer le type de forme"),
+                ("Shift+H", "Basculer mode formes mixtes"),
+            ]),
+            ("Audio & Sauvegarde", [
+                ("M", "Activer/désactiver la réactivité audio"),
+                ("S", "Sauvegarder l'image actuelle"),
+            ])
+        ]
+        
+        # Position de départ pour le texte
+        y_offset = 100
+        section_spacing = 40
+        line_spacing = 25
+        
+        for section_title, section_controls in controls:
+            # Titre de section
+            section_text = self.help_title_font.render(section_title, True, (255, 200, 100))
+            section_rect = section_text.get_rect(center=(current_size[0] // 2, y_offset))
+            self.screen.blit(section_text, section_rect)
+            y_offset += section_spacing
+            
+            # Contrôles de la section
+            for key, description in section_controls:
+                # Afficher la touche en couleur
+                key_text = self.help_font.render(f"{key}:", True, (100, 255, 100))
+                desc_text = self.help_font.render(description, True, (255, 255, 255))
+                
+                # Centrer horizontalement
+                total_width = key_text.get_width() + desc_text.get_width() + 10
+                start_x = (current_size[0] - total_width) // 2
+                
+                self.screen.blit(key_text, (start_x, y_offset))
+                self.screen.blit(desc_text, (start_x + key_text.get_width() + 10, y_offset))
+                y_offset += line_spacing
+            
+            y_offset += 10  # Espacement entre sections
+        
+        # Instructions en bas
+        footer_text = self.help_font.render("Appuyez sur 'I' ou TAB pour fermer cette aide", True, (200, 200, 200))
+        footer_rect = footer_text.get_rect(center=(current_size[0] // 2, current_size[1] - 30))
+        self.screen.blit(footer_text, footer_rect)
+    
     def render(self):
         """Rend la grille déformée sur l'écran"""
         self.screen.fill(self.background_color)
@@ -220,6 +306,9 @@ class DeformedGrid:
             shape_type = self.shape_types[i]
             
             self._draw_shape(self.screen, x, y, rotation, self.cell_size, final_color, shape_type)
+        
+        # Afficher le menu d'aide si activé
+        self._render_help_menu()
         
         pygame.display.flip()
     
@@ -245,6 +334,7 @@ class DeformedGrid:
         
         print("Contrôles:")
         print("- ESC: Quitter")
+        print("- I ou TAB: Afficher/masquer l'aide")
         print("- F: Basculer plein écran/fenêtré")
         print("- SPACE: Changer le type de distorsion")
         print("- C: Changer le schéma de couleurs")
@@ -274,6 +364,16 @@ class DeformedGrid:
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         running = False
+                    elif event.key == pygame.K_i:
+                        # I pour "Info" - aide
+                        self.show_help = not self.show_help
+                        status = "affiché" if self.show_help else "masqué"
+                        print(f"Menu d'aide: {status}")
+                    elif event.key == pygame.K_TAB:
+                        # Tab comme alternative pour l'aide (facile d'accès)
+                        self.show_help = not self.show_help
+                        status = "affiché" if self.show_help else "masqué"
+                        print(f"Menu d'aide: {status}")
                     elif event.key == pygame.K_SPACE:
                         # Changer le type de distorsion
                         current_distortion_index = (current_distortion_index + 1) % len(distortion_types)

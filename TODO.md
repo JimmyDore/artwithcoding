@@ -184,7 +184,7 @@
 - [X] Write a few tests
 - [X] Write a task file to run tests and to run the demos
 - [X] Additional shape types (circles, triangles)
-- [ ] Open the command guide with a key
+- [X] Open the command guide with a key
 - [ ] GIF/MP4 export
 - [ ] Add new distortion types
 
