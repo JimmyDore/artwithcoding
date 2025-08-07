@@ -426,20 +426,20 @@ class DeformedGrid:
                         # Sauvegarder
                         self.save_image(f"deformed_grid_{self.distortion_fn}_{int(self.time*100)}.png")
                         print("Image sauvegardée")
+                    elif event.key == pygame.K_h and (pygame.key.get_pressed()[pygame.K_LSHIFT] or pygame.key.get_pressed()[pygame.K_RSHIFT]):
+                        # Basculer le mode formes mixtes (Shift+H) - doit être testé en PREMIER
+                        self.mixed_shapes = not self.mixed_shapes
+                        self._generate_shape_types()  # Régénérer les formes
+                        mode = "formes mixtes" if self.mixed_shapes else "forme unique"
+                        print(f"Mode: {mode} ({self.shape_type})")
                     elif event.key == pygame.K_h:
-                        # Changer le type de forme
+                        # Changer le type de forme (H seul)
                         shape_types = [s.value for s in ShapeType]
                         current_shape_index = shape_types.index(self.shape_type) if self.shape_type in shape_types else 0
                         current_shape_index = (current_shape_index + 1) % len(shape_types)
                         self.shape_type = shape_types[current_shape_index]
                         self._generate_shape_types()  # Régénérer les formes
                         print(f"Forme: {self.shape_type}")
-                    elif event.key == pygame.K_h and pygame.key.get_pressed()[pygame.K_LSHIFT]:
-                        # Basculer le mode formes mixtes (Shift+H)
-                        self.mixed_shapes = not self.mixed_shapes
-                        self._generate_shape_types()  # Régénérer les formes
-                        mode = "formes mixtes" if self.mixed_shapes else "forme unique"
-                        print(f"Mode: {mode} ({self.shape_type})")
                     elif event.key == pygame.K_f:
                         # Basculer plein écran
                         self.toggle_fullscreen()
