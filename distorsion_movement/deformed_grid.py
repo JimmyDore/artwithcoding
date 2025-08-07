@@ -12,10 +12,11 @@ import math
 import random
 from typing import Tuple, List
 
-from distorsion_movement.enums import DistortionType, ColorScheme
+from distorsion_movement.enums import DistortionType, ColorScheme, ShapeType
 from distorsion_movement.audio_analyzer import AudioAnalyzer
 from distorsion_movement.colors import ColorGenerator
 from distorsion_movement.distortions import DistortionEngine
+from distorsion_movement.shapes import get_shape_renderer_function
 
 
 class DeformedGrid:
@@ -36,7 +37,9 @@ class DeformedGrid:
                  square_color: Tuple[int, int, int] = (255, 255, 255),
                  color_scheme: str = "monochrome",
                  color_animation: bool = False,
-                 audio_reactive: bool = False):
+                 audio_reactive: bool = False,
+                 shape_type: str = "square",
+                 mixed_shapes: bool = False):
         """
         Initialise la grille déformée.
         
@@ -51,6 +54,8 @@ class DeformedGrid:
             color_scheme: Schéma de couleurs ("monochrome", "gradient", "rainbow", etc.)
             color_animation: Si True, les couleurs changent dans le temps
             audio_reactive: Si True, réagit à l'audio en temps réel
+            shape_type: Type de forme à dessiner ("square", "circle", "triangle", etc.)
+            mixed_shapes: Si True, utilise différentes formes dans la grille
         """
         self.dimension = dimension
         self.cell_size = cell_size
@@ -62,6 +67,8 @@ class DeformedGrid:
         self.color_scheme = color_scheme
         self.color_animation = color_animation
         self.audio_reactive = audio_reactive
+        self.shape_type = shape_type
+        self.mixed_shapes = mixed_shapes
         
         # Audio analyzer
         self.audio_analyzer = AudioAnalyzer() if audio_reactive else None
@@ -95,6 +102,9 @@ class DeformedGrid:
         
         # Génération des couleurs de base pour chaque carré
         self._generate_base_colors()
+        
+        # Génération des types de formes pour chaque cellule
+        self._generate_shape_types()
         
         # Démarrage de l'analyse audio si activée
         if self.audio_reactive and self.audio_analyzer:
@@ -139,6 +149,21 @@ class DeformedGrid:
             )
             self.base_colors.append(color)
     
+    def _generate_shape_types(self):
+        """Génère les types de formes pour chaque cellule selon le mode choisi"""
+        self.shape_types = []
+        
+        if self.mixed_shapes:
+            # Mode formes mixtes: assignation aléatoire de différentes formes
+            available_shapes = [shape.value for shape in ShapeType]
+            for i in range(self.dimension * self.dimension):
+                shape_type = random.choice(available_shapes)
+                self.shape_types.append(shape_type)
+        else:
+            # Mode forme unique: toutes les cellules ont la même forme
+            for i in range(self.dimension * self.dimension):
+                self.shape_types.append(self.shape_type)
+    
     def _get_distorted_positions(self) -> List[Tuple[float, float, float]]:
         """
         Calcule toutes les positions déformées selon la fonction choisie.
@@ -156,51 +181,24 @@ class DeformedGrid:
             self.canvas_size
         )
     
-    def _draw_deformed_square(self, surface, x: float, y: float, 
-                             rotation: float, size: int, color: Tuple[int, int, int]):
+    def _draw_shape(self, surface, x: float, y: float, rotation: float, 
+                   size: int, color: Tuple[int, int, int], shape_type: str):
         """
-        Dessine un carré déformé à la position donnée.
+        Dessine une forme à la position donnée.
         
         Args:
             surface: Surface pygame où dessiner
-            x, y: Position du centre du carré
+            x, y: Position du centre de la forme
             rotation: Rotation en radians
-            size: Taille du carré
-            color: Couleur RGB du carré
+            size: Taille de la forme
+            color: Couleur RGB de la forme
+            shape_type: Type de forme à dessiner
         """
-        # Calcul des coins du carré
-        half_size = size // 2
-        corners = [
-            (-half_size, -half_size),
-            (half_size, -half_size),
-            (half_size, half_size),
-            (-half_size, half_size)
-        ]
+        # Obtenir la fonction de rendu pour ce type de forme
+        shape_function = get_shape_renderer_function(shape_type)
         
-        # Application de la rotation
-        rotated_corners = []
-        cos_r = math.cos(rotation)
-        sin_r = math.sin(rotation)
-        
-        for corner_x, corner_y in corners:
-            new_x = corner_x * cos_r - corner_y * sin_r + x
-            new_y = corner_x * sin_r + corner_y * cos_r + y
-            
-            # Validation des coordonnées (éviter NaN/Inf)
-            if math.isfinite(new_x) and math.isfinite(new_y):
-                rotated_corners.append((int(new_x), int(new_y)))
-            else:
-                # Fallback vers la position centrale si coordonnées invalides
-                rotated_corners.append((int(x), int(y)))
-        
-        # Dessin du polygone (seulement si on a des coordonnées valides)
-        if len(rotated_corners) >= 3:
-            try:
-                pygame.draw.polygon(surface, color, rotated_corners)
-            except (TypeError, ValueError):
-                # Fallback: dessiner un petit rectangle centré
-                rect = pygame.Rect(int(x) - 2, int(y) - 2, 4, 4)
-                pygame.draw.rect(surface, color, rect)
+        # Dessiner la forme
+        shape_function(surface, x, y, rotation, size, color)
     
     def render(self):
         """Rend la grille déformée sur l'écran"""
@@ -209,7 +207,7 @@ class DeformedGrid:
         # Obtenir toutes les positions déformées
         positions = self._get_distorted_positions()
         
-        # Dessiner chaque carré déformé avec sa couleur
+        # Dessiner chaque forme déformée avec sa couleur
         for i, (x, y, rotation) in enumerate(positions):
             # Obtenir la couleur de base et appliquer l'animation si nécessaire
             base_color = self.base_colors[i]
@@ -218,7 +216,10 @@ class DeformedGrid:
                 self.audio_reactive, self.audio_analyzer
             )
             
-            self._draw_deformed_square(self.screen, x, y, rotation, self.cell_size, final_color)
+            # Obtenir le type de forme pour cette cellule
+            shape_type = self.shape_types[i]
+            
+            self._draw_shape(self.screen, x, y, rotation, self.cell_size, final_color, shape_type)
         
         pygame.display.flip()
     
@@ -249,6 +250,8 @@ class DeformedGrid:
         print("- C: Changer le schéma de couleurs")
         print("- A: Activer/désactiver l'animation des couleurs")
         print("- M: Activer/désactiver la réactivité audio")
+        print("- H: Changer le type de forme")
+        print("- Shift+H: Basculer mode formes mixtes")
         print("- +/-: Ajuster l'intensité de distorsion")
         print("- R: Régénérer les paramètres aléatoires")
         print("- S: Sauvegarder l'image")
@@ -317,11 +320,26 @@ class DeformedGrid:
                         # Régénérer les paramètres
                         self._generate_distortions()
                         self._generate_base_colors()
+                        self._generate_shape_types()
                         print("Paramètres régénérés")
                     elif event.key == pygame.K_s:
                         # Sauvegarder
                         self.save_image(f"deformed_grid_{self.distortion_fn}_{int(self.time*100)}.png")
                         print("Image sauvegardée")
+                    elif event.key == pygame.K_h:
+                        # Changer le type de forme
+                        shape_types = [s.value for s in ShapeType]
+                        current_shape_index = shape_types.index(self.shape_type) if self.shape_type in shape_types else 0
+                        current_shape_index = (current_shape_index + 1) % len(shape_types)
+                        self.shape_type = shape_types[current_shape_index]
+                        self._generate_shape_types()  # Régénérer les formes
+                        print(f"Forme: {self.shape_type}")
+                    elif event.key == pygame.K_h and pygame.key.get_pressed()[pygame.K_LSHIFT]:
+                        # Basculer le mode formes mixtes (Shift+H)
+                        self.mixed_shapes = not self.mixed_shapes
+                        self._generate_shape_types()  # Régénérer les formes
+                        mode = "formes mixtes" if self.mixed_shapes else "forme unique"
+                        print(f"Mode: {mode} ({self.shape_type})")
                     elif event.key == pygame.K_f:
                         # Basculer plein écran
                         self.toggle_fullscreen()

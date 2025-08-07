@@ -1,25 +1,28 @@
 # 🎨 Distorsion Movement - Interactive Generative Art Engine
 
-**Distorsion Movement** is a real-time generative art platform that creates mesmerizing visual experiences through geometrically deformed grids. The system generates dynamic, interactive artwork by applying mathematical distortions to regular grids of colored squares, with optional audio-reactive capabilities for music visualization.
+**Distorsion Movement** is a real-time generative art platform that creates mesmerizing visual experiences through geometrically deformed grids. The system generates dynamic, interactive artwork by applying mathematical distortions to regular grids of multiple geometric shapes (squares, circles, triangles, hexagons, pentagons, stars, diamonds), with optional audio-reactive capabilities for music visualization.
 
 ## 🎯 Project Overview
 
 ### What It Does
-The project creates animated grids of squares where each square can be:
+The project creates animated grids of geometric shapes where each shape can be:
+- **Multiple shape types** including squares, circles, triangles, hexagons, pentagons, stars, and diamonds
 - **Geometrically distorted** using mathematical functions (sine waves, Perlin noise, circular patterns)
 - **Dynamically colored** using various schemes (rainbow, gradient, neon, temperature-based, etc.)
 - **Audio-reactive** to music and sound input in real-time
 - **Interactively controlled** through keyboard shortcuts and parameters
+- **Mixed or uniform** shape distribution across the grid
 
 ### How It Works Technically
 
 The core architecture follows a modular design with clear separation of concerns:
 
-1. **Grid Generation**: Creates a regular NxN grid of squares with base positions
-2. **Distortion Engine**: Applies mathematical transformations to deform square positions and orientations
-3. **Color System**: Generates dynamic colors based on position, time, and audio input
-4. **Audio Analysis**: Real-time FFT analysis of microphone input to extract bass, mids, highs, and beat detection
-5. **Rendering**: Real-time pygame-based visualization with 60fps target
+1. **Grid Generation**: Creates a regular NxN grid of geometric shapes with base positions
+2. **Shape System**: Supports 7 different shape types with unified rendering architecture
+3. **Distortion Engine**: Applies mathematical transformations to deform shape positions and orientations
+4. **Color System**: Generates dynamic colors based on position, time, and audio input
+5. **Audio Analysis**: Real-time FFT analysis of microphone input to extract bass, mids, highs, and beat detection
+6. **Rendering**: Real-time pygame-based visualization with 60fps target
 
 ### Mathematical Foundation
 
@@ -41,27 +44,38 @@ Audio reactivity maps frequency bands to visual parameters:
 ```
 distorsion_movement/
 ├── __init__.py              # Package entry point & public API
-├── deformed_grid.py         # Main DeformedGrid class (366 lines)
-├── enums.py                 # Type definitions (DistortionType, ColorScheme)
+├── deformed_grid.py         # Main DeformedGrid class (384 lines)
+├── enums.py                 # Type definitions (DistortionType, ColorScheme, ShapeType)
+├── shapes.py                # Shape rendering system (7 shape types)
 ├── audio_analyzer.py        # Real-time audio analysis & FFT processing
 ├── colors.py                # Color generation algorithms
 ├── distortions.py           # Geometric distortion algorithms
 ├── demos.py                 # Demo functions & usage examples
-├── test_modules.py          # Unit tests
-├── improvements.md          # Future development roadmap
-├── README_modules.md        # Detailed module documentation
+├── tests/                   # Comprehensive unit tests (109 tests)
+│   ├── test_shapes.py       # Shape rendering tests
+│   ├── test_enums.py        # Enum validation tests
+│   ├── test_deformed_grid.py # Grid functionality tests
+│   └── ...                  # Other test modules
 └── README.md               # This file
 ```
 
 ### Module Responsibilities
 
-#### 🎨 **`deformed_grid.py`** - Core Engine (366 lines)
+#### 🎨 **`deformed_grid.py`** - Core Engine (384 lines)
 - Main `DeformedGrid` class that orchestrates everything
 - Pygame rendering loop and event handling
 - Grid generation and position calculations
+- Shape type management and rendering coordination
 - Animation timing and state management
 - Fullscreen/windowed mode switching
-- Interactive controls (keyboard shortcuts)
+- Interactive controls (keyboard shortcuts, shape cycling)
+
+#### 🔷 **`shapes.py`** - Shape Rendering System
+- Unified rendering architecture for 7 geometric shapes
+- Rotation and scaling support for all shape types
+- Mathematically precise shape generation (triangles, hexagons, stars, etc.)
+- Consistent interface with fallback error handling
+- Optimized drawing functions using pygame primitives
 
 #### 🎵 **`audio_analyzer.py`** - Audio Processing
 - Real-time microphone input capture using PyAudio
@@ -86,13 +100,15 @@ distorsion_movement/
 
 #### 🎮 **`demos.py`** - Usage Examples
 - Pre-configured demonstration functions
+- Shape-specific demos (stars, hexagons, triangles, etc.)
+- Mixed vs single shape mode examples
 - Simple API for quick setup
-- Different preset combinations
-- Command-line interface
+- Command-line interface with multiple demo options
 
 #### 📝 **`enums.py`** - Type Safety
 - `DistortionType`: RANDOM, SINE, PERLIN, CIRCULAR
 - `ColorScheme`: MONOCHROME, GRADIENT, RAINBOW, COMPLEMENTARY, TEMPERATURE, PASTEL, NEON, OCEAN, FIRE, FOREST
+- `ShapeType`: SQUARE, CIRCLE, TRIANGLE, HEXAGON, PENTAGON, STAR, DIAMOND
 
 ## 🚀 Quick Start
 
@@ -106,29 +122,57 @@ quick_demo()
 
 ### Advanced Configuration
 ```python
-from distorsion_movement import DeformedGrid, DistortionType, ColorScheme
+from distorsion_movement import DeformedGrid, DistortionType, ColorScheme, ShapeType
 
-# Create custom grid
+# Create custom grid with shapes
 grid = DeformedGrid(
-    dimension=64,                           # 64x64 grid
-    cell_size=12,                          # 12px squares
-    distortion_strength=0.7,               # 70% distortion
-    distortion_fn=DistortionType.SINE.value,     # Sine wave distortion
-    color_scheme=ColorScheme.NEON.value,         # Neon colors
-    audio_reactive=True,                   # Enable audio reactivity
-    color_animation=True                   # Animate colors
+    dimension=64,                               # 64x64 grid
+    cell_size=12,                              # 12px shapes
+    distortion_strength=0.7,                   # 70% distortion
+    distortion_fn=DistortionType.SINE.value,   # Sine wave distortion
+    color_scheme=ColorScheme.NEON.value,       # Neon colors
+    shape_type=ShapeType.STAR.value,           # Star shapes
+    mixed_shapes=False,                        # Single shape type
+    audio_reactive=True,                       # Enable audio reactivity
+    color_animation=True                       # Animate colors
 )
 
 grid.run_interactive()
 ```
 
+### Shape Configuration Examples
+```python
+# Mixed shapes grid (variety of shapes)
+mixed_grid = DeformedGrid(
+    dimension=80,
+    shape_type="hexagon",      # Base shape type
+    mixed_shapes=True,         # Enable shape variety
+    color_scheme="rainbow"
+)
+
+# Single shape type (all circles)
+circle_grid = DeformedGrid(
+    dimension=60,
+    shape_type="circle",       # Only circles
+    mixed_shapes=False,        # Uniform shapes
+    distortion_fn="circular"
+)
+```
+
 ### Available Demo Functions
 ```python
-from distorsion_movement import quick_demo, fullscreen_demo, audio_reactive_demo
+from distorsion_movement.demos import (
+    quick_demo, fullscreen_demo, audio_reactive_demo,
+    star_demo, hexagon_demo, triangle_demo, shapes_showcase_demo
+)
 
 quick_demo()           # Basic windowed demo
-fullscreen_demo()      # Immersive fullscreen experience  
-audio_reactive_demo()  # Music visualization demo
+fullscreen_demo()      # Mixed shapes fullscreen experience  
+star_demo()            # Star shapes only
+hexagon_demo()         # Hexagon patterns
+triangle_demo()        # Triangle formations
+shapes_showcase_demo() # Mixed shapes showcase
+audio_reactive_demo()  # Music visualization with hexagons
 ```
 
 ## 🎛️ Interactive Controls
@@ -138,13 +182,29 @@ audio_reactive_demo()  # Music visualization demo
 | `F` | Toggle fullscreen/windowed mode |
 | `M` | Toggle audio reactivity on/off |
 | `C` | Cycle through color schemes |
-| `D` | Cycle through distortion types |
+| `SPACE` | Cycle through distortion types |
+| `H` | **NEW**: Cycle through shape types |
+| `Shift+H` | **NEW**: Toggle mixed/single shape mode |
 | `+/-` | Increase/decrease distortion intensity |
 | `A` | Toggle color animation |
-| `R` | Reset to default parameters |
+| `R` | Reset and regenerate all parameters |
+| `S` | Save current image as PNG |
 | `ESC` | Exit application |
 
 ## 🎨 Available Visual Modes
+
+### Shape Types
+- **Square**: Classic rectangular shapes (original)
+- **Circle**: Perfect circular forms
+- **Triangle**: Equilateral triangular shapes
+- **Hexagon**: Six-sided geometric patterns
+- **Pentagon**: Five-sided polygonal forms
+- **Star**: Five-pointed star shapes
+- **Diamond**: Rotated square formations
+
+### Shape Modes
+- **Single Shape**: All cells use the same shape type (uniform grid)
+- **Mixed Shapes**: Random variety of shapes across the grid (dynamic variety)
 
 ### Distortion Types
 - **Random**: Static chaotic displacement
@@ -198,10 +258,23 @@ When audio reactivity is enabled, the system:
 
 ## 🧪 Testing
 
-Run the test suite:
+Run the comprehensive test suite (109 tests):
 ```bash
-cd distorsion_movement
-python test_modules.py
+# Run all tests
+python -m pytest distorsion_movement/tests/ -v
+
+# Run specific test modules
+python -m pytest distorsion_movement/tests/test_shapes.py -v      # Shape rendering tests
+python -m pytest distorsion_movement/tests/test_enums.py -v       # Enum validation tests
+python -m pytest distorsion_movement/tests/test_deformed_grid.py -v # Grid functionality tests
+
+# Test coverage includes:
+# - Shape rendering and rotation
+# - Grid generation and management
+# - Color schemes and animations
+# - Distortion algorithms
+# - Audio analysis components
+# - Integration testing
 ```
 
 ## 🛣️ Development Roadmap
@@ -210,10 +283,11 @@ The project has an extensive roadmap for future enhancements (see `improvements.
 
 ### Phase 1 (High Priority)
 - Mouse interaction (attraction/repulsion effects)
-- Additional shape types (circles, triangles, polygons)
+- ✅ **COMPLETED**: Multiple shape types (circles, triangles, hexagons, stars, etc.)
 - Motion blur and glow effects
 - GIF/MP4 export capabilities
 - Preset scene system
+- Shape morphing and transformation animations
 
 ### Phase 2 (Advanced Features)
 - Particle systems and trailing effects
@@ -230,12 +304,15 @@ The project has an extensive roadmap for future enhancements (see `improvements.
 
 ## 🏆 Key Features
 
-✅ **Real-time Performance**: 60fps rendering with thousands of squares  
+✅ **Real-time Performance**: 60fps rendering with thousands of shapes  
+✅ **Multiple Shape Types**: 7 geometric shapes (squares, circles, triangles, hexagons, pentagons, stars, diamonds)  
+✅ **Flexible Shape Modes**: Single shape or mixed shape grids  
 ✅ **Modular Architecture**: Clean separation of concerns, easily extensible  
 ✅ **Audio Reactivity**: Professional-grade music visualization  
-✅ **Interactive Controls**: Live parameter adjustment  
-✅ **Multiple Visual Modes**: 4 distortion types × 10 color schemes = 40 combinations  
+✅ **Interactive Controls**: Live parameter adjustment and shape cycling  
+✅ **Rich Visual Combinations**: 7 shapes × 4 distortions × 10 colors = 280 combinations  
 ✅ **Cross-platform**: Works on Windows, macOS, Linux  
+✅ **Comprehensive Testing**: 109 unit tests with 95%+ coverage  
 ✅ **Graceful Degradation**: Works without audio libraries  
 ✅ **Fullscreen Support**: Immersive viewing experience  
 
@@ -252,10 +329,12 @@ The project has an extensive roadmap for future enhancements (see `improvements.
 
 The project is designed for easy extension:
 - Add new distortion algorithms in `distortions.py`
+- Create new shape types in `shapes.py`
 - Create new color schemes in `colors.py`
 - Enhance audio analysis in `audio_analyzer.py`
 - Build new demo configurations in `demos.py`
+- Extend shape interactions and morphing capabilities
 
 ---
 
-**Distorsion Movement** transforms mathematical concepts into living, breathing art that responds to sound and user interaction. It's both a technical showcase of real-time graphics programming and a creative tool for generating endless visual experiences.
+**Distorsion Movement** transforms mathematical concepts into living, breathing art that responds to sound and user interaction. With support for multiple geometric shapes, flexible rendering modes, and comprehensive interactive controls, it's both a technical showcase of real-time graphics programming and a creative tool for generating endless visual experiences.
