@@ -183,9 +183,10 @@
 - [X] Global README to explain the project 
 - [X] Write a few tests
 - [X] Write a task file to run tests and to run the demos
-- [ ] Mouse interaction (attraction/repulsion)
-- [ ] GIF/MP4 export
 - [ ] Additional shape types (circles, triangles)
+- [ ] Add new distortion types
+- [ ] GIF/MP4 export
+- [ ] Mouse interaction (attraction/repulsion)
 - [ ] Motion blur effects
 - [ ] Preset scene system
 - [ ] Audio reactive features
