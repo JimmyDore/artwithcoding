@@ -1,4 +1,4 @@
-1. Spiral Warp
+1. Spiral Warp ✅
 Idea: Move points along a spiral path from the center (like a galaxy formation), with radius slowly increasing or decreasing over time.
 
 Effect: Creates a vortex-like rotation that feels more “orderly” than a chaotic swirl.

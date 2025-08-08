@@ -18,7 +18,8 @@ class DistortionType(Enum):
     CHECKERBOARD = "checkerboard"
     CHECKERBOARD_DIAGONAL = "checkerboard_diagonal"
     TORNADO = "tornado"
-    DISTORTION_SPIRAL = "distortion_spiral"
+    SPIRAL = "spiral"
+    SHEAR = "shear"
 
 
 class ColorScheme(Enum):

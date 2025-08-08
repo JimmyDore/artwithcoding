@@ -672,6 +672,48 @@ class DistortionEngine:
 
         return (new_x, new_y, shape_rotation)
 
+    @staticmethod
+    def apply_distortion_shear(
+        base_pos: Tuple[float, float],
+        params: dict,
+        cell_size: int,
+        distortion_strength: float,
+        time: float
+    ) -> Tuple[float, float, float]:
+        """
+        Shear / Skew Distortion:
+        Apply a horizontal or vertical shear based on position and time.
+        Produces a diagonal wave-like skew.
+        Set params["axis"] = "vertical" to skew along vertical instead of horizontal.
+        """
+        x, y = base_pos
+
+        # Motion settings
+        wave_speed = 0.5   # cycles per second
+        wave_freq = 0.02   # spatial frequency (bigger = tighter waves)
+        max_shear = cell_size * 0.5 * distortion_strength  # max offset
+
+        # Optional per-cell stable phase for variety
+        if "phase_offset" not in params:
+            params["phase_offset"] = random.uniform(0, 2 * math.pi)
+        phase = params["phase_offset"]
+
+        # Horizontal shear (default)
+        if params.get("axis", "horizontal") == "horizontal":
+            shear_offset = math.sin(y * wave_freq + time * 2 * math.pi * wave_speed + phase) * max_shear
+            new_x = x + shear_offset
+            new_y = y
+        else:  # Vertical shear
+            shear_offset = math.sin(x * wave_freq + time * 2 * math.pi * wave_speed + phase) * max_shear
+            new_x = x
+            new_y = y + shear_offset
+
+        # Small rotation to enhance skew illusion
+        rotation = shear_offset / cell_size * 0.15
+
+        return (new_x, new_y, rotation)
+
+
     
     @staticmethod
     def get_distorted_positions(base_positions: List[Tuple[float, float]],
@@ -743,9 +785,13 @@ class DistortionEngine:
                 pos = DistortionEngine.apply_distortion_tornado(
                     base_pos, params, cell_size, distortion_strength, time, canvas_size
                 )
-            elif distortion_fn == DistortionType.DISTORTION_SPIRAL.value:
+            elif distortion_fn == DistortionType.SPIRAL.value:
                 pos = DistortionEngine.apply_distortion_spiral(
                     base_pos, params, cell_size, distortion_strength, time, canvas_size
+                )
+            elif distortion_fn == DistortionType.SHEAR.value:
+                pos = DistortionEngine.apply_distortion_shear(
+                    base_pos, params, cell_size, distortion_strength, time
                 )
             else:
                 pos = DistortionEngine.apply_distortion_random(
