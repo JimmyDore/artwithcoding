@@ -730,45 +730,66 @@ class DistortionEngine:
         x, y = base_pos
         w, h = canvas_size
 
-        # --- Focus point path (slow circular motion) ---
-        focus_radius = min(w, h) * 0.25
-        focus_speed = 0.1  # rotations per second
-        focus_x = w / 2 + math.cos(time * 2 * math.pi * focus_speed) * focus_radius
-        focus_y = h / 2 + math.sin(time * 2 * math.pi * focus_speed) * focus_radius
+        # --- Infos grille ---
+        cols = max(1, int(round(w / max(1, cell_size))))
+        rows = max(1, int(round(h / max(1, cell_size))))
+        min_dim_cells = min(cols, rows)
 
-        # Allow manual override
-        focus_x = params.get("focus_x", focus_x)
-        focus_y = params.get("focus_y", focus_y)
+        # --- Paramètres de loupe en cellules ---
+        # Par défaut : ~15% du côté le plus court, min 6 cellules, max 1/3 du côté
+        default_radius_cells = max(1, int(0.15 * min_dim_cells))
+        lens_radius_cells = int(params.get("lens_radius_cells", default_radius_cells))
+        lens_radius_cells = max(2, min(lens_radius_cells, max(3, min_dim_cells // 3)))
 
-        # --- Distance from focus point ---
+        lens_radius = lens_radius_cells * cell_size  # rayon en pixels
+        edge_softness = float(params.get("edge_softness", 0.2))  # 0 dur → 1 très doux
+
+        # --- Trajectoire du focus (éviter de sortir du canevas) ---
+        margin = lens_radius + 2 * cell_size
+        focus_speed = float(params.get("focus_speed", 0.1))  # tours/s
+        focus_path_radius = max(
+            0.0,
+            min(w, h) * 0.5 - margin
+        )
+
+        focus_x = w / 2 + math.cos(time * 2 * math.pi * focus_speed) * focus_path_radius
+        focus_y = h / 2 + math.sin(time * 2 * math.pi * focus_speed) * focus_path_radius
+
+        # Override manuel éventuel
+        focus_x = float(params.get("focus_x", focus_x))
+        focus_y = float(params.get("focus_y", focus_y))
+
+        # --- Distance au focus ---
         dx = x - focus_x
         dy = y - focus_y
         dist = math.hypot(dx, dy)
 
-        # Radius of magnification zone
-        lens_radius = min(w, h) * 0.25
-        edge_softness = 0.2  # 0 = hard edge, 1 = very soft
-
         if dist < lens_radius:
-            # Inside lens → magnify
-            t = dist / lens_radius
-            falloff = 1 - (t ** (1 + edge_softness * 2))  # smooth edge
-            magnification = 1 + 0.5 * distortion_strength * falloff
+            # À l'intérieur : agrandissement avec lissage vers le bord
+            t = dist / max(1e-6, lens_radius)
+            falloff = 1 - (t ** (1 + edge_softness * 2))
+            # Échelle un peu avec la taille de cellule pour que l’effet reste comparable
+            strength = distortion_strength
+            magnification = 1 + 0.5 * strength * falloff
 
             new_x = focus_x + dx * magnification
             new_y = focus_y + dy * magnification
         else:
-            # Outside lens → slight compression toward edge
-            compression = 1 - 0.1 * distortion_strength
-            new_x = focus_x + dx * compression
-            new_y = focus_y + dy * compression
+            # À l'extérieur : pas de compression (plus lisible sur grandes grilles)
+            # Si tu veux l'ancien comportement, dé-commente:
+            # compression = 1 - 0.1 * distortion_strength
+            # new_x = focus_x + dx * compression
+            # new_y = focus_y + dy * compression
+            new_x = x
+            new_y = y
 
-        # Optional rotation for nearby cells (looks like glass refraction)
-        rotation = 0
+        # Rotation subtile à l'intérieur de la loupe (refraction vibe)
+        rotation = 0.0
         if dist < lens_radius:
             rotation = (1 - dist / lens_radius) * distortion_strength * 0.2
 
         return (new_x, new_y, rotation)
+
 
     @staticmethod
     def apply_distortion_spiral_wave(
