@@ -246,6 +246,85 @@ class DistortionEngine:
         )
     
     @staticmethod
+    def apply_distortion_ripple(base_pos: Tuple[float, float], 
+                               params: dict,
+                               cell_size: int,
+                               distortion_strength: float,
+                               time: float,
+                               canvas_size: Tuple[int, int]) -> Tuple[float, float, float]:
+        """
+        Applique une distorsion d'ondulation (ripple) avec des vagues concentriques.
+        Les déplacements sont appliqués dans la direction tangentielle pour créer
+        un effet d'ondulation perpendiculaire au rayon.
+        
+        Args:
+            base_pos: Position de base (x, y)
+            params: Paramètres de distorsion
+            cell_size: Taille de la cellule
+            distortion_strength: Intensité de distorsion
+            time: Temps actuel pour l'animation
+            canvas_size: Taille du canvas (largeur, hauteur)
+        
+        Returns:
+            Tuple[x, y, rotation] - Position déformée et rotation
+        """
+        center_x = canvas_size[0] // 2
+        center_y = canvas_size[1] // 2
+        
+        # Distance au centre
+        dx_center = base_pos[0] - center_x
+        dy_center = base_pos[1] - center_y
+        distance = math.sqrt(dx_center**2 + dy_center**2)
+        
+        # Gestion du point au centre pour éviter la singularité
+        if distance == 0:
+            return (base_pos[0], base_pos[1], 0)
+        
+        # Paramètres des ondulations concentriques
+        wave_speed = 2.5  # Vitesse de propagation des ondulations
+        wave_frequency = 0.03  # Fréquence des ondulations (espacement entre les vagues)
+        wave_amplitude_scale = 0.8  # Échelle de l'amplitude
+        
+        # Phase de l'ondulation basée sur la distance et le temps
+        ripple_phase = distance * wave_frequency - time * wave_speed
+        
+        # Amplitude de l'ondulation avec atténuation progressive
+        max_distance = math.sqrt(center_x**2 + center_y**2)
+        normalized_distance = distance / max_distance
+        distance_attenuation = math.exp(-normalized_distance * 1.5)
+        
+        ripple_amplitude = math.sin(ripple_phase) * wave_amplitude_scale * distance_attenuation
+        
+        # Direction tangentielle (perpendiculaire au rayon)
+        if distance > 0:
+            # Vecteur unitaire radial
+            radial_x = dx_center / distance
+            radial_y = dy_center / distance
+            
+            # Vecteur tangentiel (rotation de 90 degrés du vecteur radial)
+            tangent_x = -radial_y
+            tangent_y = radial_x
+            
+            # Déplacement tangentiel basé sur l'amplitude de l'ondulation
+            max_offset = cell_size * distortion_strength
+            displacement_magnitude = ripple_amplitude * max_offset
+            
+            displacement_x = tangent_x * displacement_magnitude
+            displacement_y = tangent_y * displacement_magnitude
+        else:
+            displacement_x = 0
+            displacement_y = 0
+        
+        # Rotation légère basée sur l'amplitude de l'ondulation
+        shape_rotation = ripple_amplitude * distortion_strength * 0.3
+        
+        return (
+            base_pos[0] + displacement_x,
+            base_pos[1] + displacement_y,
+            shape_rotation
+        )
+    
+    @staticmethod
     def get_distorted_positions(base_positions: List[Tuple[float, float]],
                                distortion_params: List[dict],
                                distortion_fn: str,
@@ -289,6 +368,10 @@ class DistortionEngine:
                 )
             elif distortion_fn == DistortionType.SWIRL.value:
                 pos = DistortionEngine.apply_distortion_swirl(
+                    base_pos, params, cell_size, distortion_strength, time, canvas_size
+                )
+            elif distortion_fn == DistortionType.RIPPLE.value:
+                pos = DistortionEngine.apply_distortion_ripple(
                     base_pos, params, cell_size, distortion_strength, time, canvas_size
                 )
             else:
