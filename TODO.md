@@ -191,6 +191,9 @@
 - Shapes improvements : 
   - [ ] Koch snowflake => Looks awsome but very laggy
 
+- Colors improvements : 
+  - [ ] Aurora borealis could maybe be improved, more red
+
 - [ ] Audio feature is not working well
 
 ## 🏆 **Implementation Priority**
@@ -214,6 +217,7 @@
 - [ ] Add in README: 
   - the new distorsions (from pulse, pulse not included)
   - the new shapes (from koch snowflake)
+  - the new colors (from analogous)
   - the size guide (and mention it in the number of combinations possible)
   - the status display
   - how a distorsion function works, what parameters and what it basically does (compute next position and rotations based on ...)
