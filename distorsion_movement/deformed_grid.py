@@ -770,5 +770,9 @@ class DeformedGrid:
     
     def save_image(self, filename: str):
         """Sauvegarde l'image actuelle"""
+
+        # Create the folder if it doesn't exist
+        os.makedirs("images", exist_ok=True)
+        filename = os.path.join("images", filename)
         pygame.image.save(self.screen, filename)
         print(f"Image sauvegardée: {filename}")

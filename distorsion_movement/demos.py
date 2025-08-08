@@ -74,13 +74,13 @@ def quick_demo():
 def fullscreen_demo():
     """Démonstration en plein écran avec formes mixtes - PARFAIT POUR TESTER LES NOUVELLES FORMES! 🔷🔶⭐"""
     grid = create_deformed_grid(
-        dimension=128, 
+        dimension=32, 
         cell_size=20, 
         distortion_strength=1, 
-        distortion_fn="kaleidoscope_twist",
-        color_scheme="complementary", 
+        distortion_fn="spiral_wave",
+        color_scheme="analogous", 
         color_animation=True, 
-        fullscreen=True,
+        fullscreen=False,
         shape_type="square",  # Commencer avec des carrés
         mixed_shapes=False     # Formes mixtes activées
     )
