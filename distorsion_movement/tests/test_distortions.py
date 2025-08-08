@@ -216,11 +216,110 @@ class TestDistortionEngine:
         assert y == base_pos[1]
         assert rotation == 0
     
+    def test_apply_distortion_swirl(self):
+        """Test swirl distortion application."""
+        base_pos = (100.0, 100.0)
+        params = {
+            'offset_x': 0.0,
+            'offset_y': 0.0,
+            'phase_x': 0.0,
+            'phase_y': 0.0,
+            'frequency': 1.0,
+            'rotation_phase': 0.0
+        }
+        cell_size = 10
+        distortion_strength = 1.0
+        time_factor = 0.0
+        canvas_size = (200, 200)
+        
+        x, y, rotation = DistortionEngine.apply_distortion_swirl(
+            base_pos, params, cell_size, distortion_strength, time_factor, canvas_size
+        )
+        
+        # Check that return values are valid
+        assert isinstance(x, (int, float))
+        assert isinstance(y, (int, float))
+        assert isinstance(rotation, (int, float))
+        
+        # The swirl should create some displacement for non-center points
+        center_x, center_y = canvas_size[0] // 2, canvas_size[1] // 2
+        if base_pos != (center_x, center_y):
+            # Position should be modified for non-center points
+            assert (x, y) != base_pos
+    
+    def test_apply_distortion_swirl_center_singularity(self):
+        """Test swirl distortion handles center point singularity."""
+        canvas_size = (200, 200)
+        center_x, center_y = canvas_size[0] // 2, canvas_size[1] // 2
+        base_pos = (float(center_x), float(center_y))  # Point at center
+        params = DistortionEngine.generate_distortion_params()
+        cell_size = 10
+        distortion_strength = 1.0
+        time_factor = 0.0
+        
+        x, y, rotation = DistortionEngine.apply_distortion_swirl(
+            base_pos, params, cell_size, distortion_strength, time_factor, canvas_size
+        )
+        
+        # At center, should handle singularity gracefully
+        assert x == base_pos[0]
+        assert y == base_pos[1]
+        assert rotation == 0
+    
+    def test_apply_distortion_swirl_with_time(self):
+        """Test swirl distortion animation with time."""
+        base_pos = (150.0, 100.0)
+        params = {
+            'offset_x': 0.0,
+            'offset_y': 0.0,
+            'phase_x': 0.0,
+            'phase_y': 0.0,
+            'frequency': 1.0,
+            'rotation_phase': 0.0
+        }
+        cell_size = 10
+        distortion_strength = 1.0
+        canvas_size = (200, 200)
+        
+        # Test at different time points
+        x1, y1, r1 = DistortionEngine.apply_distortion_swirl(
+            base_pos, params, cell_size, distortion_strength, 0.0, canvas_size
+        )
+        x2, y2, r2 = DistortionEngine.apply_distortion_swirl(
+            base_pos, params, cell_size, distortion_strength, math.pi, canvas_size
+        )
+        
+        # Positions and rotations should be different at different times
+        assert (x1, y1, r1) != (x2, y2, r2)
+    
+    def test_apply_distortion_swirl_displacement_bounded(self):
+        """Test that swirl displacement is bounded by cell_size * distortion_strength."""
+        base_pos = (150.0, 120.0)
+        params = DistortionEngine.generate_distortion_params()
+        cell_size = 20
+        distortion_strength = 0.5
+        time_factor = 0.0
+        canvas_size = (300, 300)
+        
+        x, y, rotation = DistortionEngine.apply_distortion_swirl(
+            base_pos, params, cell_size, distortion_strength, time_factor, canvas_size
+        )
+        
+        # Calculate displacement
+        displacement_x = x - base_pos[0]
+        displacement_y = y - base_pos[1]
+        displacement_magnitude = math.sqrt(displacement_x**2 + displacement_y**2)
+        
+        # Should be bounded by max_offset = cell_size * distortion_strength
+        max_offset = cell_size * distortion_strength
+        assert displacement_magnitude <= max_offset + 0.001  # Small tolerance for floating point
+    
     @pytest.mark.parametrize("distortion_type", [
         DistortionType.RANDOM,
         DistortionType.SINE,
         DistortionType.PERLIN,
-        DistortionType.CIRCULAR
+        DistortionType.CIRCULAR,
+        DistortionType.SWIRL
     ])
     def test_all_distortion_types_return_valid_output(self, distortion_type):
         """Test that all distortion types return valid output."""
@@ -245,6 +344,10 @@ class TestDistortionEngine:
             )
         elif distortion_type == DistortionType.CIRCULAR:
             result = DistortionEngine.apply_distortion_circular(
+                base_pos, params, cell_size, distortion_strength, time_factor, (200, 200)
+            )
+        elif distortion_type == DistortionType.SWIRL:
+            result = DistortionEngine.apply_distortion_swirl(
                 base_pos, params, cell_size, distortion_strength, time_factor, (200, 200)
             )
         
@@ -304,3 +407,32 @@ class TestDistortionEngine:
         assert isinstance(x, (int, float))
         assert isinstance(y, (int, float))
         assert isinstance(rotation, (int, float))
+    
+    def test_get_distorted_positions_swirl(self):
+        """Test swirl distortion via get_distorted_positions function."""
+        base_positions = [(100.0, 100.0), (150.0, 120.0)]
+        distortion_params = [
+            DistortionEngine.generate_distortion_params()
+            for _ in range(len(base_positions))
+        ]
+        distortion_fn = DistortionType.SWIRL.value
+        cell_size = 10
+        distortion_strength = 0.5
+        time = 0.0
+        canvas_size = (200, 200)
+        
+        positions = DistortionEngine.get_distorted_positions(
+            base_positions, distortion_params, distortion_fn, 
+            cell_size, distortion_strength, time, canvas_size
+        )
+        
+        # Should return same number of positions
+        assert len(positions) == len(base_positions)
+        
+        # Each position should be a tuple of 3 elements
+        for pos in positions:
+            assert len(pos) == 3
+            x, y, rotation = pos
+            assert isinstance(x, (int, float))
+            assert isinstance(y, (int, float))
+            assert isinstance(rotation, (int, float))

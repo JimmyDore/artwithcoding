@@ -110,9 +110,8 @@ class TestColorGenerator:
     @pytest.mark.parametrize("color_scheme", [
         ColorScheme.PASTEL.value,
         ColorScheme.NEON.value,
-        ColorScheme.OCEAN.value,
-        ColorScheme.FIRE.value,
-        ColorScheme.FOREST.value
+        ColorScheme.MONOCHROME.value,
+        ColorScheme.BLACK_WHITE_RADIAL.value,
     ])
     def test_all_color_schemes_return_valid_rgb(self, color_scheme):
         """Test that all color schemes return valid RGB values."""

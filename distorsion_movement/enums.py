@@ -11,6 +11,9 @@ class DistortionType(Enum):
     SINE = "sine" 
     PERLIN = "perlin"
     CIRCULAR = "circular"
+    SWIRL = "swirl"
+    RIPPLE = "ripple"
+    FLOW = "flow"
 
 
 class ColorScheme(Enum):
