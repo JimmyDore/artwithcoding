@@ -26,6 +26,7 @@ class DistortionType(Enum):
     CURL_WARP = "curl_warp"
     FRACTAL_NOISE = "fractal_noise"
     MOIRE = "moire"
+    KALEIDOSCOPE_TWIST = "kaleidoscope_twist"
 
 
 class ColorScheme(Enum):

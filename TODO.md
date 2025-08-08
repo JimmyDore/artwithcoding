@@ -181,7 +181,11 @@
 - [X] It seems I cannot go back to monochrome
 - [X] Fix or remove useless tests
 - [X] Fix the cell size => Should also resize the grid
-- [ ] Fix the lens distortion => Always the same size of lens based on the cell size
+
+- Distorsions improvements : 
+  - [ ] Fix the lens distortion => Always the same size of lens based on the cell size
+  - [ ] Fix the kaleidoscope twist => It's not working well in full screen
+
 - [ ] Audio feature is not working well
 
 ## 🏆 **Implementation Priority**
@@ -202,6 +206,7 @@
 - [ ] Add new shape types
 - [ ] Add in README the new distorsions (from pulse, pulse not included)
 - [ ] Add in README the size guide (and mention it in the number of combinations possible)
+- [ ] Add in README how a distorsion function works, what parameters and what it basically does (compute next position and rotations based on ...)
 - [ ] Add the name of the distortion on the screen
 
 

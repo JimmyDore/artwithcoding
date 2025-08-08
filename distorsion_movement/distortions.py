@@ -1099,6 +1099,120 @@ class DistortionEngine:
 
         return (new_x, new_y, rotation)
 
+    @staticmethod
+    def apply_distortion_kaleidoscope_twist(
+        base_pos: Tuple[float, float],
+        params: dict,
+        cell_size: int,
+        distortion_strength: float,
+        time: float,
+        canvas_size: Tuple[int, int]
+    ) -> Tuple[float, float, float]:
+        """
+        Kaleidoscope Twist:
+        - Radial wedge sectors with mirror symmetry (like a kaleidoscope).
+        - Global spin + radius-based twist for vortex-y motion.
+        - Subtle multi-octave noise to "melt" the symmetry.
+        """
+        x, y = base_pos
+        cx, cy = canvas_size[0] * 0.5, canvas_size[1] * 0.5
+
+        params = {
+            "sectors": 10,          # try 8–14
+            "spin_speed": 0.10,     # slower = more regal
+            "twist_amount": 1.0,    # 0.6–1.4 range
+            "melt_amount": 0.35,    # subtle melt
+            "noise_scale": 0.02,
+            "noise_speed": 0.35,
+            "max_disp_frac": 0.34
+        }
+
+        # ---------- Controls (tweak in params) ----------
+        sectors       = max(2, int(params.get("sectors", 8)))     # number of mirrored slices
+        spin_speed    = params.get("spin_speed", 0.12)            # rotations/sec (global spin)
+        twist_amount  = params.get("twist_amount", 0.9)           # angular twist strength
+        melt_amount   = params.get("melt_amount", 0.35)           # 0..1 noise melt
+        noise_scale   = params.get("noise_scale", 0.018)          # spatial scale for melt
+        noise_speed   = params.get("noise_speed", 0.4)            # temporal speed for melt
+        max_disp_frac = params.get("max_disp_frac", 0.38)         # displacement cap as frac of cell_size
+
+        # Stable per-cell noise offsets
+        if "noise_ox" not in params:
+            params["noise_ox"] = random.uniform(0, 1000)
+            params["noise_oy"] = random.uniform(0, 1000)
+        ox, oy = params["noise_ox"], params["noise_oy"]
+
+        # ---------- Polar coords ----------
+        dx, dy = x - cx, y - cy
+        r = math.hypot(dx, dy)
+        if r == 0:
+            return (x, y, 0.0)
+
+        theta = math.atan2(dy, dx)  # [-pi, pi]
+        if theta < 0:
+            theta += 2 * math.pi     # [0, 2pi)
+
+        # ---------- Kaleidoscope folding (mirror every other sector) ----------
+        sector_angle = 2 * math.pi / sectors
+        sector_idx   = int(theta // sector_angle)
+        angle_in_sector = theta - sector_idx * sector_angle  # [0, sector_angle)
+        # Mirror odd sectors so all content folds symmetrically
+        if sector_idx % 2 == 1:
+            angle_in_sector = sector_angle - angle_in_sector
+
+        # ---------- Spin + radial twist ----------
+        # Global spin (orderly rotation)
+        spin = 2 * math.pi * spin_speed * time
+
+        # Radial twist increases with distance from center (vortex feel)
+        max_r = math.hypot(cx, cy)
+        radial = min(1.0, r / (max_r + 1e-6))
+        twist = twist_amount * distortion_strength * radial
+
+        # Reconstruct angle inside its own sector, then add spin & twist
+        new_theta = sector_idx * sector_angle + angle_in_sector + spin + twist
+
+        # Keep radius (we'll add "melt" as small displacement after)
+        base_new_x = cx + math.cos(new_theta) * r
+        base_new_y = cy + math.sin(new_theta) * r
+
+        # ---------- Melting symmetry (multi-octave noise displacement) ----------
+        # Small, organic wobble so the symmetry breathes.
+        def n2(px, py, tt):
+            return math.sin(px) * math.cos(py * 1.31) + math.sin(px * 0.7 + tt) * math.cos(py * 0.9 - tt * 1.1)
+
+        tt = time * noise_speed
+        # sample around the *transformed* position for coherent melt
+        px = (base_new_x + ox) * noise_scale
+        py = (base_new_y + oy) * noise_scale
+
+        # 3 octaves
+        nx  = n2(px, py, tt) * 0.6
+        ny  = n2(py + 5.2, px - 3.7, tt + 1.5) * 0.6
+        nx += n2(px * 2.0, py * 2.0, tt * 1.7) * 0.28
+        ny += n2(py * 2.0 + 5.2, px * 2.0 - 3.7, tt * 1.7) * 0.28
+        nx += n2(px * 4.0, py * 4.0, tt * 2.6) * 0.12
+        ny += n2(py * 4.0 + 5.2, px * 4.0 - 3.7, tt * 2.6) * 0.12
+
+        # Normalize a bit
+        mag = math.hypot(nx, ny)
+        if mag > 1e-6:
+            nx /= mag
+            ny /= mag
+
+        max_offset = cell_size * max_disp_frac * distortion_strength * melt_amount
+        melt_dx = nx * max_offset
+        melt_dy = ny * max_offset
+
+        new_x = base_new_x + melt_dx
+        new_y = base_new_y + melt_dy
+
+        # ---------- Rotation of the square itself ----------
+        # Tie it to spin + twist + local melt magnitude
+        rotation = (spin * 0.12 + twist * 0.2) + (mag * 0.1 * distortion_strength)
+
+        return (new_x, new_y, rotation)
+
 
         
     @staticmethod
@@ -1201,6 +1315,10 @@ class DistortionEngine:
                 )
             elif distortion_fn == DistortionType.MOIRE.value:
                 pos = DistortionEngine.apply_distortion_moire(
+                    base_pos, params, cell_size, distortion_strength, time, canvas_size
+                )
+            elif distortion_fn == DistortionType.KALEIDOSCOPE_TWIST.value:
+                pos = DistortionEngine.apply_distortion_kaleidoscope_twist(
                     base_pos, params, cell_size, distortion_strength, time, canvas_size
                 )
             else:
