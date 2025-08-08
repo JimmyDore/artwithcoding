@@ -202,6 +202,7 @@
 - [ ] Add new shape types
 - [ ] Add in README the new distorsions (from pulse, pulse not included)
 - [ ] Add in README the size guide (and mention it in the number of combinations possible)
+- [ ] Add the name of the distortion on the screen
 
 
 
