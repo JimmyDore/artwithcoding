@@ -92,6 +92,10 @@ class DeformedGrid:
         self.show_help = False
         self.help_font = None
         
+        # Variables pour l'affichage du statut
+        self.show_status = True
+        self.status_font = None
+        
         # Variables pour l'enregistrement GIF
         self.is_recording = False
         self.recorded_frames = []
@@ -116,15 +120,17 @@ class DeformedGrid:
         pygame.display.set_caption("Grille Déformée - Art Génératif")
         self.clock = pygame.time.Clock()
         
-        # Initialiser la police pour le menu d'aide
+        # Initialiser les polices pour le menu d'aide et l'affichage du statut
         try:
             pygame.font.init()  # Ensure font system is initialized
             self.help_font = pygame.font.Font(None, 24)
             self.help_title_font = pygame.font.Font(None, 32)
+            self.status_font = pygame.font.Font(None, 20)
         except pygame.error:
             # Fallback for headless environments (tests)
             self.help_font = None
             self.help_title_font = None
+            self.status_font = None
         
         # Génération des positions de base et des déformations
         self._generate_base_positions()
@@ -304,6 +310,7 @@ class DeformedGrid:
                 ("ESC", "Quitter l'application"),
                 ("F", "Basculer plein écran/fenêtré"),
                 ("I ou TAB", "Afficher/masquer cette aide"),
+                ("D", "Afficher/masquer les infos de statut"),
             ]),
             ("Distorsion & Animation", [
                 ("ESPACE", "Changer le type de distorsion"),
@@ -361,6 +368,75 @@ class DeformedGrid:
         footer_rect = footer_text.get_rect(center=(current_size[0] // 2, current_size[1] - 30))
         self.screen.blit(footer_text, footer_rect)
     
+    def _render_status_display(self):
+        """
+        Affiche les informations de statut en haut à droite de l'écran.
+        """
+        if not self.show_status:
+            return
+        
+        # Skip status display if font is not available (headless environment)
+        if self.status_font is None:
+            return
+        
+        current_size = self.screen.get_size()
+        
+        # Informations à afficher
+        total_cells = self.dimension * self.dimension
+        status_lines = [
+            f"Distorsion: {self.distortion_fn}",
+            f"Intensité: {self.distortion_strength:.2f}",
+            f"Cellules: {self.dimension}x{self.dimension} ({total_cells})",
+            f"Couleurs: {self.color_scheme}"
+        ]
+        
+        # Ajouter des informations supplémentaires si pertinentes
+        if self.color_animation:
+            status_lines.append("Animation: ON")
+        if self.audio_reactive:
+            status_lines.append("Audio: ON")
+        if self.mixed_shapes:
+            status_lines.append("Formes: Mixtes")
+        else:
+            status_lines.append(f"Forme: {self.shape_type}")
+        if self.is_recording:
+            status_lines.append(f"REC: {len(self.recorded_frames)}f")
+        
+        # Calculer la position de départ (en haut à droite avec marge)
+        margin = 10
+        line_height = 22
+        max_width = 0
+        
+        # Calculer la largeur maximale nécessaire
+        for line in status_lines:
+            text_surface = self.status_font.render(line, True, (255, 255, 255))
+            max_width = max(max_width, text_surface.get_width())
+        
+        # Créer un fond semi-transparent
+        background_width = max_width + 20
+        background_height = len(status_lines) * line_height + 10
+        background_rect = pygame.Rect(
+            current_size[0] - background_width - margin,
+            margin,
+            background_width,
+            background_height
+        )
+        
+        # Dessiner le fond semi-transparent
+        overlay = pygame.Surface((background_width, background_height))
+        overlay.set_alpha(128)  # Semi-transparent
+        overlay.fill((0, 0, 0))  # Noir
+        self.screen.blit(overlay, background_rect.topleft)
+        
+        # Dessiner chaque ligne de texte
+        start_x = current_size[0] - max_width - margin - 10
+        start_y = margin + 5
+        
+        for i, line in enumerate(status_lines):
+            text_surface = self.status_font.render(line, True, (255, 255, 255))
+            y_pos = start_y + i * line_height
+            self.screen.blit(text_surface, (start_x, y_pos))
+    
     def render(self):
         """Rend la grille déformée sur l'écran"""
         self.screen.fill(self.background_color)
@@ -384,6 +460,9 @@ class DeformedGrid:
         
         # Afficher le menu d'aide si activé
         self._render_help_menu()
+        
+        # Afficher le statut si activé
+        self._render_status_display()
         
         pygame.display.flip()
     
@@ -506,6 +585,7 @@ class DeformedGrid:
         print("Contrôles:")
         print("- ESC: Quitter")
         print("- I ou TAB: Afficher/masquer l'aide")
+        print("- D: Afficher/masquer les infos de statut")
         print("- F: Basculer plein écran/fenêtré")
         print("- SPACE: Changer le type de distorsion")
         print("- C: Changer le schéma de couleurs")
@@ -548,6 +628,11 @@ class DeformedGrid:
                         self.show_help = not self.show_help
                         status = "affiché" if self.show_help else "masqué"
                         print(f"Menu d'aide: {status}")
+                    elif event.key == pygame.K_d:
+                        # D pour basculer l'affichage du statut
+                        self.show_status = not self.show_status
+                        status = "affiché" if self.show_status else "masqué"
+                        print(f"Affichage du statut: {status}")
                     elif event.key == pygame.K_SPACE:
                         # Changer le type de distorsion
                         current_distortion_index = (current_distortion_index + 1) % len(distortion_types)

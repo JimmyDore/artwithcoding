@@ -55,14 +55,14 @@ Effect: Gives a shimmering/morphing appearance.
 
 # More pschychelic ideas
 
-1. Moiré Warp
+1. Moiré Warp ✅
 Idea: Use overlapping wave patterns with slightly different frequencies on X and Y to create interference patterns.
 
 Effect: Hypnotic shimmering grids that look like optical illusions when animated.
 
 Twist: Slight phase drift over time makes the patterns morph constantly.
 
-2. Kaleidoscope Twist
+2. Kaleidoscope Twist ✅
 Idea: Mirror and rotate cells around the center in repeating wedge-shaped sectors (like a kaleidoscope).
 
 Effect: Radial symmetry that constantly shifts and folds in on itself.

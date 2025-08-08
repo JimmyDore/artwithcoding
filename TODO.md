@@ -190,8 +190,6 @@
 
 ## 🏆 **Implementation Priority**
 
-### **Phase 1 (High Impact, Low Effort)**
-
 - [X] Global README to explain the project 
 - [X] Write a few tests
 - [X] Write a task file to run tests and to run the demos
@@ -200,17 +198,20 @@
 - [X] GIF/MP4 export
 - [X] Add new distortion types (swirl, ripple, flow)
 - [X] Add options to play with the cell size
+- [X] Add the name of the distortion, the intensity, and the number of cells on the screen
 
-- [ ] Add new distortion types (take a look at the new_distortions_again.md file for more ideas)
-- [ ] Add new color schemes
 - [ ] Add new shape types
-- [ ] Add in README the new distorsions (from pulse, pulse not included)
-- [ ] Add in README the size guide (and mention it in the number of combinations possible)
-- [ ] Add in README how a distorsion function works, what parameters and what it basically does (compute next position and rotations based on ...)
-- [ ] Add the name of the distortion on the screen
+- [ ] Add new color schemes (inspire from pastel color in archive)
+- [ ] Add new distortion types (take a look at the new_distortions_again.md file for more ideas)
 
+- [ ] Add an option to export the parameters of the current scene (just export the params.json file) and find a way to load it automatically when the app is launched
 
-
+- [ ] Add in README: 
+  - the new distorsions (from pulse, pulse not included)
+  - the size guide (and mention it in the number of combinations possible)
+  - the status display
+  - how a distorsion function works, what parameters and what it basically does (compute next position and rotations based on ...)
+  - the indicators screen
 
 - [ ] Mouse interaction (attraction/repulsion)
   - in a pull request, not working well
@@ -219,5 +220,3 @@
 - [ ] Motion blur effects
 - [ ] Preset scene system
 - [ ] Particle systems
-- [ ] Advanced distortion types
-- [ ] GIF/MP4 export
