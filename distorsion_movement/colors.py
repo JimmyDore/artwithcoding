@@ -211,10 +211,43 @@ class ColorGenerator:
 
             r, g, b = colorsys.hsv_to_rgb(hue, sat, val)
             return (int(r * 255), int(g * 255), int(b * 255))
+
+        elif color_scheme == "duotone_accent":
+            # Two main colors with a rare accent pop
+            color_a = (30, 144, 255)   # Dodger blue
+            color_b = (255, 105, 180)  # Hot pink
+            accent   = (255, 255, 0)   # Bright yellow pop
+
+            row = index // dimension
+            col = index % dimension
             
+            # Use pseudo-random function based on position for unpredictable accent placement
+            # This creates a deterministic but seemingly random pattern
+            seed = (row * 73 + col * 151 + row * col * 23) % 997  # Large prime for better distribution
+            
+            # Rare accent: approximately 1 in 20-25 cells (4-5% chance)
+            if seed < 40:  # 40/997 ≈ 4% chance
+                return accent
+            
+            # More interesting duotone pattern: use Perlin-like noise for organic distribution
+            # Combine multiple pattern scales for visual complexity
+            pattern1 = (row // 2 + col // 2) % 2  # Larger checkerboard
+            pattern2 = (row + col) % 3            # Diagonal stripes
+            pattern3 = ((row * 3) % 7 + (col * 2) % 5) % 2  # Irregular pattern
+            
+            # Combine patterns for more organic distribution
+            combined_pattern = (pattern1 + pattern2 + pattern3) % 2
+            
+            if combined_pattern == 0:
+                return color_a
+            else:
+                return color_b
+
         # Par défaut, retourner blanc
         return (255, 255, 255)
-    
+
+
+
     @staticmethod
     def get_animated_color(base_color: Tuple[int, int, int], 
                           position_index: int,

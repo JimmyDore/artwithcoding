@@ -212,16 +212,16 @@
 - [ ] Add new color schemes (inspire from pastel color in archive)
 - [ ] Add new distortion types (take a look at the new_distortions_again.md file for more ideas)
 
-- [ ] Add an option to export the parameters of the current scene (just export the params.json file) and find a way to load it automatically when the app is launched
+- [ ] Add an option to export the parameters of the current scene (just export the params.json file) and find a way to load it automatically when the app is launched. Maybe reuse the save image feature, and save a json file with the parameters.
 
-- [ ] Add in README: 
-  - the new distorsions (from pulse, pulse not included)
-  - the new shapes (from koch snowflake)
-  - the new colors (from analogous)
-  - the size guide (and mention it in the number of combinations possible)
-  - the status display
-  - how a distorsion function works, what parameters and what it basically does (compute next position and rotations based on ...)
-  - the indicators screen
+- Add in README: 
+  - [ ] the new distorsions (from pulse, pulse not included)
+  - [ ] the new shapes (from koch snowflake)
+  - [ ] the new colors (from analogous)
+  - [ ] the size guide (and mention it in the number of combinations possible)
+  - [ ] the status display
+  - [ ] how a distorsion function works, what parameters and what it basically does (compute next position and rotations based on ...)
+  - [ ] the new indicators screen
 
 - [ ] Mouse interaction (attraction/repulsion)
   - in a pull request, not working well
