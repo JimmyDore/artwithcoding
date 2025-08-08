@@ -1016,6 +1016,90 @@ class DistortionEngine:
 
         return (new_x, new_y, rotation)
 
+    @staticmethod
+    def apply_distortion_moire(
+        base_pos: Tuple[float, float],
+        params: dict,
+        cell_size: int,
+        distortion_strength: float,
+        time: float,
+        canvas_size: Tuple[int, int]
+    ) -> Tuple[float, float, float]:
+        """
+        Moiré Warp (strong/obvious):
+        Sum of two almost-identical plane waves with a tiny angle/frequency detune.
+        The slow envelope (beat) modulates amplitude -> big drifting bands.
+        """
+        x, y = base_pos
+        cx, cy = canvas_size[0] * 0.5, canvas_size[1] * 0.5
+        dx, dy = x - cx, y - cy
+
+        # ---- Controls (these make or break the moiré look) ----
+        wavelength_px = params.get("wavelength_px", 90.0)   # base wavelength in pixels
+        detune_freq   = params.get("detune_freq", 0.06)     # 0.03–0.10: small diff in wavelength
+        base_angle_deg= params.get("base_angle_deg", 25.0)  # direction of wave 1
+        detune_angle  = params.get("detune_angle_deg", 8.0) # 4–12°: tiny angle difference
+        phase_speed   = params.get("phase_speed", 0.15)     # cycles/sec (slow drift)
+        max_factor    = params.get("max_factor", 0.6)      # displacement scale
+
+        # Per-cell stable phase
+        if "phase_offset" not in params:
+            params["phase_offset"] = random.uniform(0, 2*math.pi)
+        phase0 = params["phase_offset"]
+
+        # Wave numbers
+        k1 = 2*math.pi / wavelength_px
+        k2 = 2*math.pi / (wavelength_px * (1.0 + detune_freq))
+
+        # Directions (unit vectors)
+        a1 = math.radians(base_angle_deg)
+        a2 = math.radians(base_angle_deg + detune_angle)
+        u1 = (math.cos(a1), math.sin(a1))
+        u2 = (math.cos(a2), math.sin(a2))
+
+        # Projections
+        p1 = dx * u1[0] + dy * u1[1]
+        p2 = dx * u2[0] + dy * u2[1]
+
+        # Time phases
+        tphase = 2*math.pi*phase_speed*time
+
+        # Two nearly-identical waves
+        s1 = math.sin(k1 * p1 + tphase + 0.7*phase0)
+        s2 = math.sin(k2 * p2 - tphase + 1.1*phase0)
+
+        # Strong interference bands via *envelope* of the difference vector
+        # Envelope wavevector ≈ (k1*u1 - k2*u2) -> low frequency (big bands)
+        env_vec_x = k1*u1[0] - k2*u2[0]
+        env_vec_y = k1*u1[1] - k2*u2[1]
+        env_norm  = math.hypot(env_vec_x, env_vec_y)
+        if env_norm < 1e-6:
+            env_norm = 1e-6
+        env_ux, env_uy = env_vec_x/env_norm, env_vec_y/env_norm
+        env_proj = dx*env_ux + dy*env_uy
+        envelope = 0.5 + 0.5 * math.sin(env_norm * env_proj + 0.6*tphase + phase0)
+        # envelope in [0,1] -> multiplies amplitude to reveal big drifting bands
+
+        # Displacement = vector sum of the two waves, modulated by envelope
+        disp_x = (s1 * u1[0] + s2 * u2[0]) * envelope
+        disp_y = (s1 * u1[1] + s2 * u2[1]) * envelope
+
+        # Normalize & scale so it stays nice at strength=1
+        mag = math.hypot(disp_x, disp_y)
+        if mag > 1e-6:
+            disp_x /= mag
+            disp_y /= mag
+
+        max_offset = cell_size * max_factor * distortion_strength
+        new_x = x + disp_x * max_offset
+        new_y = y + disp_y * max_offset
+
+        # Subtle rotation tied to envelope (bands look like they “shimmer”)
+        rotation = envelope * 0.12 * distortion_strength * (s1 - s2)
+
+        return (new_x, new_y, rotation)
+
+
         
     @staticmethod
     def get_distorted_positions(base_positions: List[Tuple[float, float]],
@@ -1114,6 +1198,10 @@ class DistortionEngine:
             elif distortion_fn == DistortionType.FRACTAL_NOISE.value:
                 pos = DistortionEngine.apply_distortion_fractal_noise(
                     base_pos, params, cell_size, distortion_strength, time
+                )
+            elif distortion_fn == DistortionType.MOIRE.value:
+                pos = DistortionEngine.apply_distortion_moire(
+                    base_pos, params, cell_size, distortion_strength, time, canvas_size
                 )
             else:
                 pos = DistortionEngine.apply_distortion_random(
