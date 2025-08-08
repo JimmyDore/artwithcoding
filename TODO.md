@@ -183,8 +183,13 @@
 - [X] Fix the cell size => Should also resize the grid
 
 - Distorsions improvements : 
-  - [ ] Fix the lens distortion => Always the same size of lens based on the cell size
+  - [ ] Fix the lens distortion 
+      => Always the same size of lens based on the cell size
+      => Solution : the size of the lens should be based on the cell/grid size
   - [ ] Fix the kaleidoscope twist => It's not working well in full screen
+
+- Shapes improvements : 
+  - [ ] Koch snowflake => Looks awsome but very laggy
 
 - [ ] Audio feature is not working well
 

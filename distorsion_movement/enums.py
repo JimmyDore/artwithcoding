@@ -54,3 +54,4 @@ class ShapeType(Enum):
     STAR = "star"
     PENTAGON = "pentagon"
     DIAMOND = "diamond"
+    KOCH_SNOWFLAKE = "koch_snowflake"
