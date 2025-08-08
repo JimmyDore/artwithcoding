@@ -15,19 +15,25 @@ class TestDistortionType:
         assert DistortionType.SINE.value == "sine"
         assert DistortionType.PERLIN.value == "perlin"
         assert DistortionType.CIRCULAR.value == "circular"
+        assert DistortionType.SWIRL.value == "swirl"
+        assert DistortionType.RIPPLE.value == "ripple"
+        assert DistortionType.FLOW.value == "flow"
     
     def test_distortion_type_count(self):
         """Test that we have the expected number of distortion types."""
-        assert len(DistortionType) == 4
+        assert len(DistortionType) == 7
     
     def test_distortion_type_iteration(self):
         """Test that we can iterate over all distortion types."""
         types = list(DistortionType)
-        assert len(types) == 4
+        assert len(types) == 7
         assert DistortionType.RANDOM in types
         assert DistortionType.SINE in types
         assert DistortionType.PERLIN in types
         assert DistortionType.CIRCULAR in types
+        assert DistortionType.SWIRL in types
+        assert DistortionType.RIPPLE in types
+        assert DistortionType.FLOW in types
 
 
 class TestColorScheme:
@@ -36,26 +42,29 @@ class TestColorScheme:
     def test_color_scheme_values(self):
         """Test that all color schemes have correct values."""
         assert ColorScheme.MONOCHROME.value == "monochrome"
+        assert ColorScheme.BLACK_WHITE_RADIAL.value == "black_white_radial"
+        assert ColorScheme.BLACK_WHITE_ALTERNATING.value == "black_white_alternating"
         assert ColorScheme.GRADIENT.value == "gradient"
         assert ColorScheme.RAINBOW.value == "rainbow"
         assert ColorScheme.COMPLEMENTARY.value == "complementary"
-        assert ColorScheme.TEMPERATURE.value == "temperature"
         assert ColorScheme.PASTEL.value == "pastel"
         assert ColorScheme.NEON.value == "neon"
-        assert ColorScheme.OCEAN.value == "ocean"
-        assert ColorScheme.FIRE.value == "fire"
-        assert ColorScheme.FOREST.value == "forest"
     
     def test_color_scheme_count(self):
         """Test that we have the expected number of color schemes."""
-        assert len(ColorScheme) == 10
+        assert len(ColorScheme) == 8
     
     def test_color_scheme_iteration(self):
         """Test that we can iterate over all color schemes."""
         schemes = list(ColorScheme)
-        assert len(schemes) == 10
+        assert len(schemes) == 8
         assert ColorScheme.MONOCHROME in schemes
+        assert ColorScheme.BLACK_WHITE_RADIAL in schemes
+        assert ColorScheme.BLACK_WHITE_ALTERNATING in schemes
+        assert ColorScheme.GRADIENT in schemes
         assert ColorScheme.RAINBOW in schemes
+        assert ColorScheme.COMPLEMENTARY in schemes
+        assert ColorScheme.PASTEL in schemes
         assert ColorScheme.NEON in schemes
 
 

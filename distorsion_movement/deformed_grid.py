@@ -113,8 +113,14 @@ class DeformedGrid:
         self.clock = pygame.time.Clock()
         
         # Initialiser la police pour le menu d'aide
-        self.help_font = pygame.font.Font(None, 24)
-        self.help_title_font = pygame.font.Font(None, 32)
+        try:
+            pygame.font.init()  # Ensure font system is initialized
+            self.help_font = pygame.font.Font(None, 24)
+            self.help_title_font = pygame.font.Font(None, 32)
+        except pygame.error:
+            # Fallback for headless environments (tests)
+            self.help_font = None
+            self.help_title_font = None
         
         # Génération des positions de base et des déformations
         self._generate_base_positions()
@@ -225,6 +231,10 @@ class DeformedGrid:
         Affiche le menu d'aide par-dessus la grille.
         """
         if not self.show_help:
+            return
+        
+        # Skip help menu if fonts are not available (headless environment)
+        if self.help_font is None or self.help_title_font is None:
             return
         
         # Créer une surface semi-transparente pour l'arrière-plan

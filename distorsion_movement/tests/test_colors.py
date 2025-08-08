@@ -85,16 +85,16 @@ class TestColorGenerator:
             assert 0 <= g <= 255
             assert 0 <= b <= 255
     
-    def test_get_color_temperature(self):
-        """Test temperature color scheme."""
+    def test_get_color_pastel(self):
+        """Test pastel color scheme."""
         base_color = (255, 255, 255)
         
-        # Test cold (center) vs hot (edge) positions
+        # Test center vs edge positions for pastel scheme
         color_center = ColorGenerator.get_color_for_position(
-            ColorScheme.TEMPERATURE.value, base_color, 0.5, 0.5, 0.0, 32, 64
+            ColorScheme.PASTEL.value, base_color, 0.5, 0.5, 0.0, 32, 64
         )
         color_edge = ColorGenerator.get_color_for_position(
-            ColorScheme.TEMPERATURE.value, base_color, 0.0, 0.0, 1.0, 0, 64
+            ColorScheme.PASTEL.value, base_color, 0.0, 0.0, 1.0, 0, 64
         )
         
         # Colors should be different
@@ -168,7 +168,7 @@ class TestColorGenerator:
             ColorScheme.GRADIENT.value,
             ColorScheme.RAINBOW.value,
             ColorScheme.COMPLEMENTARY.value,
-            ColorScheme.TEMPERATURE.value
+            ColorScheme.BLACK_WHITE_RADIAL.value
         ]
         
         for scheme in varying_schemes:
