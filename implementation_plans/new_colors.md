@@ -4,8 +4,8 @@
 
 - Triadic → three equally spaced hues (e.g., cyan–magenta–yellow).
 - Split-complementary → a base color + the two colors adjacent to its complement.
-- Duotone + Accent → two main colors and a single pop color appearing rarely.
-- Infrared / Thermal camera → deep blue → green → yellow → red → white.
+- ✅ Duotone + Accent → two main colors and a single pop color appearing rarely.
+- ✅ Infrared / Thermal camera → deep blue → green → yellow → red → white.
 
 ## Mood-based themes
 

@@ -78,7 +78,7 @@ def fullscreen_demo():
         cell_size=20, 
         distortion_strength=1, 
         distortion_fn="circular",
-        color_scheme="infrared_thermal", 
+        color_scheme="duotone_accent", 
         color_animation=True, 
         fullscreen=False,
         shape_type="square",  # Commencer avec des carrés
