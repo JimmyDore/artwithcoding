@@ -192,7 +192,8 @@
 - [X] Additional shape types (circles, triangles)
 - [X] Open the command guide with a key
 - [X] GIF/MP4 export
-- [ ] Add new distortion types
+- [X] Add new distortion types (swirl, ripple, flow)
+- [ ] Add new distortion types (take a look at the new_distortions_again.md file for more ideas)
 
 
 - [ ] Mouse interaction (attraction/repulsion)
