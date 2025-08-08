@@ -425,13 +425,141 @@ class TestDistortionEngine:
         assert isinstance(displacement_x, (int, float))
         assert isinstance(displacement_y, (int, float))
     
+    def test_apply_distortion_flow(self):
+        """Test basic flow distortion functionality."""
+        base_pos = (120.0, 150.0)
+        params = DistortionEngine.generate_distortion_params()
+        cell_size = 20
+        distortion_strength = 0.5
+        time_factor = 0.0
+        
+        x, y, rotation = DistortionEngine.apply_distortion_flow(
+            base_pos, params, cell_size, distortion_strength, time_factor
+        )
+        
+        # Should return valid numbers
+        assert isinstance(x, (int, float))
+        assert isinstance(y, (int, float))
+        assert isinstance(rotation, (int, float))
+        
+        # Should not be NaN or infinity
+        assert not math.isnan(x)
+        assert not math.isnan(y)
+        assert not math.isnan(rotation)
+        assert math.isfinite(x)
+        assert math.isfinite(y)
+        assert math.isfinite(rotation)
+    
+    def test_apply_distortion_flow_with_time(self):
+        """Test that flow distortion changes over time."""
+        base_pos = (80.0, 100.0)
+        params = DistortionEngine.generate_distortion_params()
+        cell_size = 15
+        distortion_strength = 0.7
+        
+        # Test with different time values
+        x1, y1, r1 = DistortionEngine.apply_distortion_flow(
+            base_pos, params, cell_size, distortion_strength, 0.0
+        )
+        x2, y2, r2 = DistortionEngine.apply_distortion_flow(
+            base_pos, params, cell_size, distortion_strength, 2.0
+        )
+        
+        # Positions and rotations should be different at different times
+        assert (x1, y1, r1) != (x2, y2, r2)
+    
+    def test_apply_distortion_flow_displacement_bounded(self):
+        """Test that flow displacement is bounded by cell_size * distortion_strength."""
+        base_pos = (200.0, 180.0)
+        params = DistortionEngine.generate_distortion_params()
+        cell_size = 25
+        distortion_strength = 0.8
+        time_factor = 1.5
+        
+        x, y, rotation = DistortionEngine.apply_distortion_flow(
+            base_pos, params, cell_size, distortion_strength, time_factor
+        )
+        
+        # Calculate displacement
+        displacement_x = x - base_pos[0]
+        displacement_y = y - base_pos[1]
+        displacement_magnitude = math.sqrt(displacement_x**2 + displacement_y**2)
+        
+        # Should be bounded by max_offset = cell_size * distortion_strength
+        max_offset = cell_size * distortion_strength
+        assert displacement_magnitude <= max_offset + 0.001  # Small tolerance for floating point
+    
+    def test_apply_distortion_flow_smooth_field(self):
+        """Test that flow distortion creates a smooth vector field."""
+        params = DistortionEngine.generate_distortion_params()
+        cell_size = 20
+        distortion_strength = 0.5
+        time_factor = 0.5
+        
+        # Test nearby points to ensure smoothness
+        base_pos1 = (100.0, 100.0)
+        base_pos2 = (101.0, 100.0)  # Very close point
+        
+        x1, y1, r1 = DistortionEngine.apply_distortion_flow(
+            base_pos1, params, cell_size, distortion_strength, time_factor
+        )
+        x2, y2, r2 = DistortionEngine.apply_distortion_flow(
+            base_pos2, params, cell_size, distortion_strength, time_factor
+        )
+        
+        # Displacement should be smooth - nearby points should have similar displacements
+        dx1 = x1 - base_pos1[0]
+        dy1 = y1 - base_pos1[1]
+        dx2 = x2 - base_pos2[0]
+        dy2 = y2 - base_pos2[1]
+        
+        # The difference in displacement should be relatively small for nearby points
+        displacement_diff = math.sqrt((dx2 - dx1)**2 + (dy2 - dy1)**2)
+        
+        # Should be much smaller than the maximum possible displacement
+        max_offset = cell_size * distortion_strength
+        assert displacement_diff < max_offset * 0.5  # Arbitrary smoothness threshold
+    
+    def test_apply_distortion_flow_coherent_movement(self):
+        """Test that flow distortion creates coherent movement patterns."""
+        params = DistortionEngine.generate_distortion_params()
+        cell_size = 20
+        distortion_strength = 0.6
+        time_factor = 1.0
+        
+        # Test a grid of points to check for coherent patterns
+        test_points = [
+            (50.0, 50.0),
+            (60.0, 50.0),
+            (70.0, 50.0),
+            (50.0, 60.0),
+            (60.0, 60.0),
+            (70.0, 60.0)
+        ]
+        
+        results = []
+        for point in test_points:
+            x, y, rotation = DistortionEngine.apply_distortion_flow(
+                point, params, cell_size, distortion_strength, time_factor
+            )
+            displacement_x = x - point[0]
+            displacement_y = y - point[1]
+            results.append((displacement_x, displacement_y, rotation))
+        
+        # All results should be valid and finite
+        for dx, dy, r in results:
+            assert math.isfinite(dx)
+            assert math.isfinite(dy)
+            assert math.isfinite(r)
+    
     @pytest.mark.parametrize("distortion_type", [
         DistortionType.RANDOM,
         DistortionType.SINE,
         DistortionType.PERLIN,
         DistortionType.CIRCULAR,
         DistortionType.SWIRL,
-        DistortionType.RIPPLE
+        DistortionType.RIPPLE,
+        DistortionType.FLOW
     ])
     def test_all_distortion_types_return_valid_output(self, distortion_type):
         """Test that all distortion types return valid output."""
@@ -465,6 +593,10 @@ class TestDistortionEngine:
         elif distortion_type == DistortionType.RIPPLE:
             result = DistortionEngine.apply_distortion_ripple(
                 base_pos, params, cell_size, distortion_strength, time_factor, (200, 200)
+            )
+        elif distortion_type == DistortionType.FLOW:
+            result = DistortionEngine.apply_distortion_flow(
+                base_pos, params, cell_size, distortion_strength, time_factor
             )
         
         assert len(result) == 3
@@ -514,6 +646,40 @@ class TestDistortionEngine:
         distortion_strength = 0.7
         time = 0.5
         canvas_size = (250, 250)
+        
+        positions = DistortionEngine.get_distorted_positions(
+            base_positions, distortion_params, distortion_fn, 
+            cell_size, distortion_strength, time, canvas_size
+        )
+        
+        # Should return same number of positions
+        assert len(positions) == len(base_positions)
+        
+        # Each position should be a tuple of 3 elements
+        for pos in positions:
+            assert len(pos) == 3
+            x, y, rotation = pos
+            assert isinstance(x, (int, float))
+            assert isinstance(y, (int, float))
+            assert isinstance(rotation, (int, float))
+            
+            # Check values are finite
+            assert math.isfinite(x)
+            assert math.isfinite(y)
+            assert math.isfinite(rotation)
+    
+    def test_get_distorted_positions_flow(self):
+        """Test flow distortion via get_distorted_positions function."""
+        base_positions = [(100.0, 100.0), (150.0, 120.0), (80.0, 160.0), (200.0, 90.0)]
+        distortion_params = [
+            DistortionEngine.generate_distortion_params()
+            for _ in range(len(base_positions))
+        ]
+        distortion_fn = DistortionType.FLOW.value
+        cell_size = 18
+        distortion_strength = 0.6
+        time = 1.0
+        canvas_size = (300, 300)  # Note: flow doesn't use canvas_size, but required for interface
         
         positions = DistortionEngine.get_distorted_positions(
             base_positions, distortion_params, distortion_fn, 
@@ -599,6 +765,40 @@ class TestDistortionEngine:
         distortion_strength = 0.7
         time = 0.5
         canvas_size = (250, 250)
+        
+        positions = DistortionEngine.get_distorted_positions(
+            base_positions, distortion_params, distortion_fn, 
+            cell_size, distortion_strength, time, canvas_size
+        )
+        
+        # Should return same number of positions
+        assert len(positions) == len(base_positions)
+        
+        # Each position should be a tuple of 3 elements
+        for pos in positions:
+            assert len(pos) == 3
+            x, y, rotation = pos
+            assert isinstance(x, (int, float))
+            assert isinstance(y, (int, float))
+            assert isinstance(rotation, (int, float))
+            
+            # Check values are finite
+            assert math.isfinite(x)
+            assert math.isfinite(y)
+            assert math.isfinite(rotation)
+    
+    def test_get_distorted_positions_flow(self):
+        """Test flow distortion via get_distorted_positions function."""
+        base_positions = [(100.0, 100.0), (150.0, 120.0), (80.0, 160.0), (200.0, 90.0)]
+        distortion_params = [
+            DistortionEngine.generate_distortion_params()
+            for _ in range(len(base_positions))
+        ]
+        distortion_fn = DistortionType.FLOW.value
+        cell_size = 18
+        distortion_strength = 0.6
+        time = 1.0
+        canvas_size = (300, 300)  # Note: flow doesn't use canvas_size, but required for interface
         
         positions = DistortionEngine.get_distorted_positions(
             base_positions, distortion_params, distortion_fn, 

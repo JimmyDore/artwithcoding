@@ -325,6 +325,111 @@ class DistortionEngine:
         )
     
     @staticmethod
+    def apply_distortion_flow(base_pos: Tuple[float, float], 
+                             params: dict,
+                             cell_size: int,
+                             distortion_strength: float,
+                             time: float) -> Tuple[float, float, float]:
+        """
+        Applique une distorsion de flux (flow) avec un champ vectoriel pseudo curl-noise.
+        Utilise des combinaisons de sin/cos pour créer un champ de vecteurs cohérent et lisse
+        qui évolue dans le temps.
+        
+        Args:
+            base_pos: Position de base (x, y)
+            params: Paramètres de distorsion
+            cell_size: Taille de la cellule
+            distortion_strength: Intensité de distorsion
+            time: Temps actuel pour l'animation
+        
+        Returns:
+            Tuple[x, y, rotation] - Position déformée et rotation
+        """
+        x, y = base_pos
+        
+        # Paramètres du champ de flux
+        flow_scale = 0.01  # Échelle spatiale du champ de flux
+        time_scale = 0.5   # Vitesse d'évolution temporelle
+        noise_layers = 3   # Nombre de couches de bruit pour plus de complexité
+        
+        # Variables pour accumuler les composantes du champ vectoriel
+        flow_x = 0.0
+        flow_y = 0.0
+        
+        # Génération du champ vectoriel avec multiple octaves
+        for octave in range(noise_layers):
+            # Fréquence et amplitude pour cette octave
+            freq = flow_scale * (2 ** octave)
+            amplitude = 1.0 / (2 ** octave)
+            
+            # Coordonnées modulées par la fréquence et le temps
+            fx = x * freq + time * time_scale * (octave + 1)
+            fy = y * freq + time * time_scale * (octave + 1) * 0.7
+            
+            # Génération pseudo curl-noise utilisant des dérivées de fonctions périodiques
+            # Pour créer un champ de flux cohérent, nous utilisons le rotationnel d'un champ scalaire
+            
+            # Potentiel scalaire A
+            potential_a = math.sin(fx) * math.cos(fy * 1.3) + math.sin(fx * 0.7) * math.cos(fy)
+            
+            # Potentiel scalaire B (légèrement décalé pour diversité)
+            potential_b = math.cos(fx * 1.1) * math.sin(fy * 0.9) + math.cos(fx) * math.sin(fy * 1.2)
+            
+            # Calcul approximatif du rotationnel pour obtenir un champ vectoriel divergence-free
+            # curl = (∂B/∂x - ∂A/∂y, ∂A/∂x - ∂B/∂y)
+            
+            # Dérivées partielles approximées
+            delta = 0.01
+            
+            # ∂A/∂x
+            da_dx = (math.sin(fx + delta) * math.cos(fy * 1.3) + math.sin((fx + delta) * 0.7) * math.cos(fy) - potential_a) / delta
+            
+            # ∂A/∂y  
+            da_dy = (math.sin(fx) * math.cos((fy + delta) * 1.3) + math.sin(fx * 0.7) * math.cos(fy + delta) - potential_a) / delta
+            
+            # ∂B/∂x
+            db_dx = (math.cos((fx + delta) * 1.1) * math.sin(fy * 0.9) + math.cos(fx + delta) * math.sin(fy * 1.2) - potential_b) / delta
+            
+            # ∂B/∂y
+            db_dy = (math.cos(fx * 1.1) * math.sin((fy + delta) * 0.9) + math.cos(fx) * math.sin((fy + delta) * 1.2) - potential_b) / delta
+            
+            # Champ vectoriel curl
+            curl_x = db_dx - da_dy
+            curl_y = da_dx - db_dy
+            
+            # Accumulation pondérée
+            flow_x += curl_x * amplitude
+            flow_y += curl_y * amplitude
+        
+        # Calcul de la magnitude du flux pour normalisation
+        flow_magnitude = math.sqrt(flow_x**2 + flow_y**2)
+        
+        # Application du déplacement avec normalisation pour respecter les bornes
+        max_offset = cell_size * distortion_strength
+        
+        if flow_magnitude > 0:
+            # Normaliser le vecteur de flux pour qu'il reste dans les bornes
+            # Utiliser tanh pour une transition douce et garantir |flow| <= 1
+            normalized_magnitude = math.tanh(flow_magnitude)
+            flow_x_normalized = (flow_x / flow_magnitude) * normalized_magnitude
+            flow_y_normalized = (flow_y / flow_magnitude) * normalized_magnitude
+            
+            displacement_x = flow_x_normalized * max_offset
+            displacement_y = flow_y_normalized * max_offset
+        else:
+            displacement_x = 0
+            displacement_y = 0
+        
+        # Rotation basée sur la magnitude du flux original (avant normalisation)
+        shape_rotation = math.tanh(flow_magnitude) * distortion_strength * 0.4
+        
+        return (
+            base_pos[0] + displacement_x,
+            base_pos[1] + displacement_y,
+            shape_rotation
+        )
+    
+    @staticmethod
     def get_distorted_positions(base_positions: List[Tuple[float, float]],
                                distortion_params: List[dict],
                                distortion_fn: str,
@@ -373,6 +478,10 @@ class DistortionEngine:
             elif distortion_fn == DistortionType.RIPPLE.value:
                 pos = DistortionEngine.apply_distortion_ripple(
                     base_pos, params, cell_size, distortion_strength, time, canvas_size
+                )
+            elif distortion_fn == DistortionType.FLOW.value:
+                pos = DistortionEngine.apply_distortion_flow(
+                    base_pos, params, cell_size, distortion_strength, time
                 )
             else:
                 pos = DistortionEngine.apply_distortion_random(
