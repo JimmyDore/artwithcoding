@@ -824,6 +824,60 @@ class DistortionEngine:
         return (new_x, new_y, rotation)
 
 
+    @staticmethod
+    def apply_distortion_noise_rotation(
+        base_pos: Tuple[float, float],
+        params: dict,
+        cell_size: int,
+        distortion_strength: float,
+        time: float
+    ) -> Tuple[float, float, float]:
+        """
+        Noise-driven Rotation:
+        Positions stay put; each cell's rotation is driven by a smooth noise field over time.
+        Optionally add tiny positional shimmer via params["pos_jitter"]=True.
+        """
+        x, y = base_pos
+
+        # Stable per-cell phase
+        if "phase_offset" not in params:
+            params["phase_offset"] = random.uniform(0, 2 * math.pi)
+        phase = params["phase_offset"]
+
+        # ---- Noise field (Perlin-ish via layered sin/cos) ----
+        # Spatial scale controls how quickly the field changes across the grid
+        spatial_scale = 0.2 #0.015
+        time_scale = 2 # 0.5  # how fast the field evolves
+
+        # 3 octaves for smooth but interesting motion
+        def octave_noise(px, py, t, fmul, amp):
+            fx = px * spatial_scale * fmul + t * time_scale * (0.9 + 0.2 * fmul)
+            fy = py * spatial_scale * fmul + t * time_scale * (0.7 + 0.15 * fmul)
+            # bounded in [-1, 1] and smooth
+            return (math.sin(fx + phase) * math.cos(fy * 1.27 - phase)) * amp
+
+        n = 0.0
+        n += octave_noise(x, y, time, 1.0, 0.60)
+        n += octave_noise(x, y, time, 2.0, 0.28)
+        n += octave_noise(x, y, time, 4.0, 0.12)
+
+        # ---- Rotation amplitude ----
+        # More rotation: increase the maximum rotation range (up to ~60° at strength=1)
+        max_rot_radians = (math.pi / 3.0) * (0.25 + 0.75 * distortion_strength)  # up to ~60°
+        rotation = n * max_rot_radians
+
+        # ---- Optional tiny positional shimmer (off by default) ----
+        if params.get("pos_jitter", False):
+            jitter_amp = cell_size * 0.05 * distortion_strength  # very small
+            # Derive a "direction" from the noise for a coherent shimmer
+            jx = math.sin(phase * 0.7 + time * 0.9) * jitter_amp * n
+            jy = math.cos(phase * 0.9 - time * 0.7) * jitter_amp * n
+            return (x + jx, y + jy, rotation)
+
+        # Default: positions unchanged
+        return (x, y, rotation)
+
+
     
     @staticmethod
     def get_distorted_positions(base_positions: List[Tuple[float, float]],
@@ -910,6 +964,10 @@ class DistortionEngine:
             elif distortion_fn == DistortionType.SPIRAL_WAVE.value:
                 pos = DistortionEngine.apply_distortion_spiral_wave(
                     base_pos, params, cell_size, distortion_strength, time, canvas_size
+                )
+            elif distortion_fn == DistortionType.NOISE_ROTATION.value:
+                pos = DistortionEngine.apply_distortion_noise_rotation(
+                    base_pos, params, cell_size, distortion_strength, time
                 )
             else:
                 pos = DistortionEngine.apply_distortion_random(

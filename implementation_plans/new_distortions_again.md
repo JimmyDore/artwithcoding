@@ -48,7 +48,7 @@ Idea: Combination of circular ripple + swirl, so waves travel outward while rota
 
 Effect: Looks like a ripple on water but twisted.
 
-10. Noise-driven Rotation
+10. Noise-driven Rotation ✅
 Idea: Position stays mostly the same, but rotation of each cell is controlled entirely by noise or sine patterns.
 
 Effect: Gives a shimmering/morphing appearance.
