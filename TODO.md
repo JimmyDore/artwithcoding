@@ -179,7 +179,7 @@
 ## Bugs 
 - [X] shift + h is not working
 - [X] It seems I cannot go back to monochrome
-- [ ] Fix or remove useless tests
+- [X] Fix or remove useless tests
 - [ ] Audio feature is not working well
 
 ## 🏆 **Implementation Priority**
@@ -193,8 +193,10 @@
 - [X] Open the command guide with a key
 - [X] GIF/MP4 export
 - [X] Add new distortion types (swirl, ripple, flow)
-- [ ] Add options to play with the cell size
+- [X] Add options to play with the cell size
 - [ ] Add new distortion types (take a look at the new_distortions_again.md file for more ideas)
+- [ ] Add new color schemes
+- [ ] Add new shape types
 
 
 

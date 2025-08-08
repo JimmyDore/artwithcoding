@@ -624,6 +624,54 @@ class DistortionEngine:
 
         return (new_x, new_y, rotation)
 
+    @staticmethod
+    def apply_distortion_spiral(
+        base_pos: Tuple[float, float],
+        params: dict,
+        cell_size: int,
+        distortion_strength: float,
+        time: float,
+        canvas_size: Tuple[int, int]
+    ) -> Tuple[float, float, float]:
+        """
+        Spiral Warp:
+        Smooth vortex-like rotation where points follow a spiral path
+        with slow radius oscillations, like a galaxy formation.
+        """
+        cx = canvas_size[0] * 0.5
+        cy = canvas_size[1] * 0.5
+
+        dx = base_pos[0] - cx
+        dy = base_pos[1] - cy
+        r = math.hypot(dx, dy)
+        if r == 0:
+            return (base_pos[0], base_pos[1], 0.0)
+
+        # --- Parameters ---
+        angular_speed = 0.25  # rotations per second (slower = calmer)
+        radius_osc_speed = 0.08  # cycles per second for in/out breathing
+        radius_osc_amplitude = cell_size * 0.35 * distortion_strength  # how far radius changes
+
+        # --- Angle-based spiral motion ---
+        base_angle = math.atan2(dy, dx)
+        angle_offset = angular_speed * time * 2 * math.pi
+
+        # New angle
+        new_angle = base_angle + angle_offset
+
+        # --- Radius oscillation ---
+        radius_offset = math.sin(time * radius_osc_speed * 2 * math.pi + r * 0.01) * radius_osc_amplitude
+        new_r = r + radius_offset
+
+        # Convert back to Cartesian
+        new_x = cx + math.cos(new_angle) * new_r
+        new_y = cy + math.sin(new_angle) * new_r
+
+        # Rotation of the square itself → match rotation direction
+        shape_rotation = angle_offset * 0.15  # subtle spin
+
+        return (new_x, new_y, shape_rotation)
+
     
     @staticmethod
     def get_distorted_positions(base_positions: List[Tuple[float, float]],
@@ -693,6 +741,10 @@ class DistortionEngine:
                 )
             elif distortion_fn == DistortionType.TORNADO.value:
                 pos = DistortionEngine.apply_distortion_tornado(
+                    base_pos, params, cell_size, distortion_strength, time, canvas_size
+                )
+            elif distortion_fn == DistortionType.DISTORTION_SPIRAL.value:
+                pos = DistortionEngine.apply_distortion_spiral(
                     base_pos, params, cell_size, distortion_strength, time, canvas_size
                 )
             else:
