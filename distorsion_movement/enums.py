@@ -16,6 +16,8 @@ class DistortionType(Enum):
     FLOW = "flow"
     PULSE = "pulse"
     CHECKERBOARD = "checkerboard"
+    CHECKERBOARD_DIAGONAL = "checkerboard_diagonal"
+    TORNADO = "tornado"
 
 
 class ColorScheme(Enum):

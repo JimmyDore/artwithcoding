@@ -514,6 +514,116 @@ class DistortionEngine:
 
         return (new_x, new_y, rotation)
 
+    @staticmethod
+    def apply_distortion_checkerboard_diagonal(
+        base_pos: Tuple[float, float],
+        params: dict,
+        cell_size: int,
+        distortion_strength: float,
+        time: float
+    ) -> Tuple[float, float, float]:
+        """
+        Checkerboard Warp (diagonal):
+        Neighboring cells tug in opposite directions along a diagonal.
+        Set params["diag_variant"] = "anti" to use the other diagonal (/ instead of \).
+        """
+        x, y = base_pos
+
+        # Grid coords from position
+        gx = int(x // cell_size)
+        gy = int(y // cell_size)
+
+        # Checkerboard polarity
+        polarity = 1 if ((gx + gy) % 2 == 0) else -1
+
+        # Choose which diagonal axis to use
+        use_anti = (params.get("diag_variant") == "anti")
+        if use_anti:
+            # unit vector along '/' diagonal
+            ux, uy = (1 / math.sqrt(2), -1 / math.sqrt(2))
+        else:
+            # unit vector along '\' diagonal
+            ux, uy = (1 / math.sqrt(2),  1 / math.sqrt(2))
+
+        # Optional per-cell stable phase so it's not robotically in-sync
+        if "phase_offset" not in params:
+            params["phase_offset"] = random.uniform(0, 2 * math.pi)
+        phase = params["phase_offset"]
+
+        # Motion settings
+        move_speed = 0.6  # cycles per second (tweak to taste)
+        max_offset = cell_size * 0.35 * distortion_strength
+
+        s = math.sin(2 * math.pi * move_speed * time + phase)
+        offset = s * max_offset * polarity
+
+        new_x = x + ux * offset
+        new_y = y + uy * offset
+
+        # Small rotation to sell the tug
+        rotation = s * polarity * distortion_strength * 0.12
+
+        return (new_x, new_y, rotation)
+
+    @staticmethod
+    def apply_distortion_tornado(
+        base_pos: Tuple[float, float],
+        params: dict,
+        cell_size: int,
+        distortion_strength: float,
+        time: float,
+        canvas_size: Tuple[int, int]
+    ) -> Tuple[float, float, float]:
+        """
+        Tornado Column:
+        Swirl effect where rotation speed increases toward the center axis,
+        with a mild inward pull to simulate a funnel.
+        """
+        cx = canvas_size[0] * 0.5
+        cy = canvas_size[1] * 0.5
+
+        dx = base_pos[0] - cx
+        dy = base_pos[1] - cy
+        r = math.hypot(dx, dy)
+
+        if r == 0:
+            return (base_pos[0], base_pos[1], 0.0)
+
+        # --- Parameters ---
+        swirl_base_speed = 0.6   # base swirl cycles per second
+        swirl_accel = 3.0        # how much faster near center
+        inward_strength = 0.15   # pull toward center
+        max_swirl_offset = cell_size * 0.45 * distortion_strength
+
+        # Angular velocity increases as radius decreases
+        normalized_r = r / (max(canvas_size) * 0.5)
+        angular_speed = swirl_base_speed + swirl_accel * (1.0 - normalized_r)
+
+        # Swirl angle over time
+        angle = angular_speed * time * 2 * math.pi
+
+        # Tangent vector (perpendicular to radius)
+        tx = -dy / r
+        ty = dx / r
+
+        # Swirl displacement
+        swirl_phase = math.sin(angle)
+        swirl_disp = swirl_phase * max_swirl_offset * (1.0 - normalized_r * 0.7)
+
+        # Inward pull displacement
+        inward_disp = inward_strength * distortion_strength * (1.0 - normalized_r) * cell_size
+        ix = -dx / r * inward_disp
+        iy = -dy / r * inward_disp
+
+        # Apply displacements
+        new_x = base_pos[0] + tx * swirl_disp + ix
+        new_y = base_pos[1] + ty * swirl_disp + iy
+
+        # Rotation of the square itself (more intense near center)
+        rotation = swirl_phase * distortion_strength * (0.3 + 0.4 * (1.0 - normalized_r))
+
+        return (new_x, new_y, rotation)
+
     
     @staticmethod
     def get_distorted_positions(base_positions: List[Tuple[float, float]],
@@ -576,6 +686,14 @@ class DistortionEngine:
             elif distortion_fn == DistortionType.CHECKERBOARD.value:
                 pos = DistortionEngine.apply_distortion_checkerboard(
                     base_pos, params, cell_size, distortion_strength, time
+                )
+            elif distortion_fn == DistortionType.CHECKERBOARD_DIAGONAL.value:
+                pos = DistortionEngine.apply_distortion_checkerboard_diagonal(
+                    base_pos, params, cell_size, distortion_strength, time
+                )
+            elif distortion_fn == DistortionType.TORNADO.value:
+                pos = DistortionEngine.apply_distortion_tornado(
+                    base_pos, params, cell_size, distortion_strength, time, canvas_size
                 )
             else:
                 pos = DistortionEngine.apply_distortion_random(
