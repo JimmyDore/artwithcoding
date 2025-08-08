@@ -13,7 +13,7 @@ Idea: Scale positions radially from the center in and out over time, like a hear
 
 Effect: Everything expands and contracts together, very hypnotic.
 
-4. Fractal Noise Warp
+4. Fractal Noise Warp ✅
 Idea: Like your Perlin distortion, but layered with multiple octaves of noise, each affecting position at different scales.
 
 Effect: Creates more “organic” terrain-like distortions with both large and small deformations mixed.

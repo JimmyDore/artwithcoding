@@ -949,7 +949,74 @@ class DistortionEngine:
 
         return (new_x, new_y, rotation)
 
-    
+    @staticmethod
+    def apply_distortion_fractal_noise(
+        base_pos: Tuple[float, float],
+        params: dict,
+        cell_size: int,
+        distortion_strength: float,
+        time: float
+    ) -> Tuple[float, float, float]:
+        """
+        Fractal Noise Warp:
+        Multi-octave noise-based displacement for organic, terrain-like distortions.
+        Similar to PERLIN but richer, with large + small-scale variations.
+        """
+        x, y = base_pos
+
+        # Stable per-cell offset for noise sampling
+        if "offset_x" not in params:
+            params["offset_x"] = random.uniform(0, 1000)
+            params["offset_y"] = random.uniform(0, 1000)
+        ox = params["offset_x"]
+        oy = params["offset_y"]
+
+        # Noise parameters
+        base_scale = 0.012       # spatial scale for largest octave
+        base_speed = 0.4         # base temporal speed
+        octaves = 4              # number of layers
+        persistence = 0.5        # amplitude falloff per octave
+
+        # Simple pseudo noise generator
+        def pseudo_noise(px, py, t):
+            return math.sin(px) * math.cos(py * 1.3) + math.sin(px * 0.7 + t) * math.cos(py * 0.9 - t * 1.1)
+
+        disp_x, disp_y = 0.0, 0.0
+        amplitude = 1.0
+        freq_mul = 1.0
+        max_amp_sum = 0.0
+
+        for _ in range(octaves):
+            # Sample coordinates for this octave
+            px = (x + ox) * base_scale * freq_mul
+            py = (y + oy) * base_scale * freq_mul
+            t = time * base_speed * freq_mul
+
+            n_x = pseudo_noise(px, py, t)
+            n_y = pseudo_noise(py + 5.2, px - 3.7, t + 1.5)  # second noise for Y axis
+
+            disp_x += n_x * amplitude
+            disp_y += n_y * amplitude
+
+            max_amp_sum += amplitude
+            amplitude *= persistence
+            freq_mul *= 2.0  # double frequency each octave
+
+        # Normalize total displacement
+        disp_x /= max_amp_sum
+        disp_y /= max_amp_sum
+
+        # Scale by strength & cell size
+        max_offset = cell_size * 0.45 * distortion_strength
+        new_x = x + disp_x * max_offset
+        new_y = y + disp_y * max_offset
+
+        # Rotation based on fine noise detail
+        rotation = (disp_x + disp_y) * 0.15 * distortion_strength
+
+        return (new_x, new_y, rotation)
+
+        
     @staticmethod
     def get_distorted_positions(base_positions: List[Tuple[float, float]],
                                distortion_params: List[dict],
@@ -1042,6 +1109,10 @@ class DistortionEngine:
                 )
             elif distortion_fn == DistortionType.CURL_WARP.value:
                 pos = DistortionEngine.apply_distortion_curl_warp(
+                    base_pos, params, cell_size, distortion_strength, time
+                )
+            elif distortion_fn == DistortionType.FRACTAL_NOISE.value:
+                pos = DistortionEngine.apply_distortion_fractal_noise(
                     base_pos, params, cell_size, distortion_strength, time
                 )
             else:

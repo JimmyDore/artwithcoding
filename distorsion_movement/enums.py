@@ -24,6 +24,7 @@ class DistortionType(Enum):
     SPIRAL_WAVE = "spiral_wave"
     NOISE_ROTATION = "noise_rotation"
     CURL_WARP = "curl_warp"
+    FRACTAL_NOISE = "fractal_noise"
 
 
 class ColorScheme(Enum):
