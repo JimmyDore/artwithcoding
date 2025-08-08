@@ -197,6 +197,9 @@
 - [ ] Add new distortion types (take a look at the new_distortions_again.md file for more ideas)
 - [ ] Add new color schemes
 - [ ] Add new shape types
+- [ ] Add in README the new distorsions (from pulse, pulse not included)
+- [ ] Add in README the size guide (and mention it in the number of combinations possible)
+
 
 
 

@@ -77,7 +77,7 @@ def fullscreen_demo():
         dimension=128, 
         cell_size=20, 
         distortion_strength=1, 
-        distortion_fn="shear",
+        distortion_fn="lens",
         color_scheme="complementary", 
         color_animation=True, 
         fullscreen=True,

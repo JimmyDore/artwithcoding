@@ -20,6 +20,7 @@ class DistortionType(Enum):
     TORNADO = "tornado"
     SPIRAL = "spiral"
     SHEAR = "shear"
+    LENS = "lens"
 
 
 class ColorScheme(Enum):

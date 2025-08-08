@@ -713,6 +713,62 @@ class DistortionEngine:
 
         return (new_x, new_y, rotation)
 
+    @staticmethod
+    def apply_distortion_lens(
+        base_pos: Tuple[float, float],
+        params: dict,
+        cell_size: int,
+        distortion_strength: float,
+        time: float,
+        canvas_size: Tuple[int, int]
+    ) -> Tuple[float, float, float]:
+        """
+        Lens / Magnify Effect:
+        Moving focus point distorts nearby cells outward (magnification)
+        and compresses farther cells slightly.
+        """
+        x, y = base_pos
+        w, h = canvas_size
+
+        # --- Focus point path (slow circular motion) ---
+        focus_radius = min(w, h) * 0.25
+        focus_speed = 0.1  # rotations per second
+        focus_x = w / 2 + math.cos(time * 2 * math.pi * focus_speed) * focus_radius
+        focus_y = h / 2 + math.sin(time * 2 * math.pi * focus_speed) * focus_radius
+
+        # Allow manual override
+        focus_x = params.get("focus_x", focus_x)
+        focus_y = params.get("focus_y", focus_y)
+
+        # --- Distance from focus point ---
+        dx = x - focus_x
+        dy = y - focus_y
+        dist = math.hypot(dx, dy)
+
+        # Radius of magnification zone
+        lens_radius = min(w, h) * 0.25
+        edge_softness = 0.2  # 0 = hard edge, 1 = very soft
+
+        if dist < lens_radius:
+            # Inside lens → magnify
+            t = dist / lens_radius
+            falloff = 1 - (t ** (1 + edge_softness * 2))  # smooth edge
+            magnification = 1 + 0.5 * distortion_strength * falloff
+
+            new_x = focus_x + dx * magnification
+            new_y = focus_y + dy * magnification
+        else:
+            # Outside lens → slight compression toward edge
+            compression = 1 - 0.1 * distortion_strength
+            new_x = focus_x + dx * compression
+            new_y = focus_y + dy * compression
+
+        # Optional rotation for nearby cells (looks like glass refraction)
+        rotation = 0
+        if dist < lens_radius:
+            rotation = (1 - dist / lens_radius) * distortion_strength * 0.2
+
+        return (new_x, new_y, rotation)
 
     
     @staticmethod
@@ -792,6 +848,10 @@ class DistortionEngine:
             elif distortion_fn == DistortionType.SHEAR.value:
                 pos = DistortionEngine.apply_distortion_shear(
                     base_pos, params, cell_size, distortion_strength, time
+                )
+            elif distortion_fn == DistortionType.LENS.value:
+                pos = DistortionEngine.apply_distortion_lens(
+                    base_pos, params, cell_size, distortion_strength, time, canvas_size
                 )
             else:
                 pos = DistortionEngine.apply_distortion_random(

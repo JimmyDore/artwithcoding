@@ -3,7 +3,7 @@ Idea: Move points along a spiral path from the center (like a galaxy formation),
 
 Effect: Creates a vortex-like rotation that feels more “orderly” than a chaotic swirl.
 
-2. Shear / Skew Distortion
+2. Shear / Skew Distortion ✅
 Idea: Apply a horizontal or vertical shear based on the y or x coordinate and time.
 
 Effect: Produces a wave-like diagonal stretching, like a deck of cards being pushed sideways.
@@ -18,7 +18,7 @@ Idea: Like your Perlin distortion, but layered with multiple octaves of noise, e
 
 Effect: Creates more “organic” terrain-like distortions with both large and small deformations mixed.
 
-5. Lens / Magnify Effect
+5. Lens / Magnify Effect ✅
 Idea: Pick a moving “focus point” and distort nearby cells outward (like magnification) while compressing farther areas.
 
 Effect: Feels like dragging a magnifying glass over the grid.
