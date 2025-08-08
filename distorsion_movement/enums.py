@@ -21,6 +21,7 @@ class DistortionType(Enum):
     SPIRAL = "spiral"
     SHEAR = "shear"
     LENS = "lens"
+    SPIRAL_WAVE = "spiral_wave"
 
 
 class ColorScheme(Enum):

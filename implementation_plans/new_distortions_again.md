@@ -43,7 +43,7 @@ Idea: Swirl effect, but rotation speed increases as you get closer to the center
 
 Effect: Strong dynamic pull inward while spinning.
 
-9. Spiral Wave
+9. Spiral Wave ✅
 Idea: Combination of circular ripple + swirl, so waves travel outward while rotating.
 
 Effect: Looks like a ripple on water but twisted.

@@ -770,6 +770,60 @@ class DistortionEngine:
 
         return (new_x, new_y, rotation)
 
+    @staticmethod
+    def apply_distortion_spiral_wave(
+        base_pos: Tuple[float, float],
+        params: dict,
+        cell_size: int,
+        distortion_strength: float,
+        time: float,
+        canvas_size: Tuple[int, int]
+    ) -> Tuple[float, float, float]:
+        """
+        Spiral Wave:
+        Combination of circular ripple + swirl, so waves travel outward
+        while rotating around the center.
+        """
+        cx = canvas_size[0] * 0.5
+        cy = canvas_size[1] * 0.5
+
+        dx = base_pos[0] - cx
+        dy = base_pos[1] - cy
+        r = math.hypot(dx, dy)
+        if r == 0:
+            return (base_pos[0], base_pos[1], 0.0)
+
+        # Unit radial vector
+        ux, uy = dx / r, dy / r
+
+        # --- Ripple parameters ---
+        ripple_speed = 4.0       # outward travel speed
+        ripple_freq = 0.05       # controls spacing between ripples
+        ripple_amp = cell_size * 0.4 * distortion_strength
+
+        # --- Swirl parameters ---
+        swirl_speed = 0.8        # rotations per second
+        swirl_amp = cell_size * 0.25 * distortion_strength
+
+        # Ripple wave (radial motion)
+        ripple_phase = r * ripple_freq - time * ripple_speed
+        ripple_offset = math.sin(ripple_phase) * ripple_amp * (1 - r / (max(canvas_size) * 0.5))
+
+        # Swirl displacement (tangential motion)
+        tx, ty = -uy, ux  # tangent vector
+        swirl_angle = swirl_speed * time * 2 * math.pi
+        swirl_offset = math.sin(swirl_angle + r * 0.01) * swirl_amp * (1 - r / (max(canvas_size) * 0.5))
+
+        # Combine displacements
+        new_x = base_pos[0] + ux * ripple_offset + tx * swirl_offset
+        new_y = base_pos[1] + uy * ripple_offset + ty * swirl_offset
+
+        # Rotation of the shape: blend ripple + swirl phases
+        rotation = (ripple_offset / cell_size + swirl_offset / cell_size) * 0.15
+
+        return (new_x, new_y, rotation)
+
+
     
     @staticmethod
     def get_distorted_positions(base_positions: List[Tuple[float, float]],
@@ -851,6 +905,10 @@ class DistortionEngine:
                 )
             elif distortion_fn == DistortionType.LENS.value:
                 pos = DistortionEngine.apply_distortion_lens(
+                    base_pos, params, cell_size, distortion_strength, time, canvas_size
+                )
+            elif distortion_fn == DistortionType.SPIRAL_WAVE.value:
+                pos = DistortionEngine.apply_distortion_spiral_wave(
                     base_pos, params, cell_size, distortion_strength, time, canvas_size
                 )
             else:
