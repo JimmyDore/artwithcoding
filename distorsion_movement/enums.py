@@ -43,6 +43,7 @@ class ColorScheme(Enum):
     # OCEAN = "ocean"
     # FIRE = "fire"
     # FOREST = "forest"
+    ANALOGUOUS = "analogous"
 
 
 class ShapeType(Enum):

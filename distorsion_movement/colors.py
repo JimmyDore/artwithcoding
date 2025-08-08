@@ -135,6 +135,15 @@ class ColorGenerator:
                 return (34, 139, 34)    # Vert forêt
             else:
                 return (0, 100, 0)      # Vert foncé
+
+        elif color_scheme == "analogous":
+            base_hue = 0.3  # green-ish
+            hue_shift = (x_norm - 0.5) * 0.3 + (y_norm - 0.5) * 0.3  # ±0.3 spread
+            sat = 0.5 + 0.5 * (0.5 - distance_to_center)  # more saturated near center
+            val = 0.7 + 0.3 * math.sin(index * 0.1)  # subtle brightness wave
+            r, g, b = colorsys.hsv_to_rgb((base_hue + hue_shift) % 1.0, sat, val)
+            return (int(r*255), int(g*255), int(b*255))
+
         
         # Par défaut, retourner blanc
         return (255, 255, 255)
