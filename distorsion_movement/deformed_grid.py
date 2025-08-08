@@ -7,7 +7,6 @@ mais structuré.
 """
 
 import pygame
-import numpy as np
 import math
 import random
 import datetime
@@ -15,13 +14,25 @@ import threading
 from typing import Tuple, List
 
 from distorsion_movement.enums import DistortionType, ColorScheme, ShapeType
-from distorsion_movement.audio_analyzer import AudioAnalyzer
 from distorsion_movement.colors import ColorGenerator
 from distorsion_movement.distortions import DistortionEngine
 from distorsion_movement.shapes import get_shape_renderer_function
 
-import os 
-import imageio
+import os
+
+# Web compatibility: conditionally import numpy and related modules
+try:
+    import numpy as np
+    import imageio
+    from distorsion_movement.audio_analyzer import AudioAnalyzer
+    WEB_MODE = False
+except ImportError:
+    # Web mode: numpy not available, disable features that require it
+    np = None
+    imageio = None
+    AudioAnalyzer = None
+    WEB_MODE = True
+    print("🌐 Running in web mode - some features disabled (GIF recording, audio reactivity)")
 
 
 class DeformedGrid:
@@ -75,8 +86,13 @@ class DeformedGrid:
         self.shape_type = shape_type
         self.mixed_shapes = mixed_shapes
         
-        # Audio analyzer
-        self.audio_analyzer = AudioAnalyzer() if audio_reactive else None
+        # Audio analyzer (web compatible)
+        if audio_reactive and not WEB_MODE and AudioAnalyzer:
+            self.audio_analyzer = AudioAnalyzer()
+        else:
+            self.audio_analyzer = None
+            if audio_reactive and WEB_MODE:
+                print("🌐 Audio reactivity not available in web mode")
         self.base_distortion_strength = distortion_strength  # Sauvegarde de l'intensité de base
         
         # Calcul automatique du décalage pour centrer la grille
@@ -142,8 +158,8 @@ class DeformedGrid:
         # Génération des types de formes pour chaque cellule
         self._generate_shape_types()
         
-        # Démarrage de l'analyse audio si activée
-        if self.audio_reactive and self.audio_analyzer:
+        # Démarrage de l'analyse audio si activée (web compatible)
+        if self.audio_reactive and self.audio_analyzer and not WEB_MODE:
             self.audio_analyzer.start_audio_capture()
     
     def _generate_base_positions(self):
@@ -483,7 +499,11 @@ class DeformedGrid:
             self.animation_speed = max(0.005, min(0.02 * volume_speed, 0.1))  # Entre 0.005 et 0.1
     
     def start_gif_recording(self):
-        """Démarre l'enregistrement GIF"""
+        """Démarre l'enregistrement GIF (désactivé en mode web)"""
+        if WEB_MODE:
+            print("🌐 Enregistrement GIF non disponible en mode web")
+            return
+            
         if self.is_recording:
             print("⚠️ Enregistrement déjà en cours!")
             return
@@ -495,7 +515,11 @@ class DeformedGrid:
         print("   Appuyez sur 'G' à nouveau pour arrêter et sauvegarder")
     
     def stop_gif_recording(self):
-        """Arrête l'enregistrement et sauvegarde le GIF"""
+        """Arrête l'enregistrement et sauvegarde le GIF (désactivé en mode web)"""
+        if WEB_MODE:
+            print("🌐 Enregistrement GIF non disponible en mode web")
+            return
+            
         if not self.is_recording:
             print("⚠️ Aucun enregistrement en cours!")
             return
@@ -513,8 +537,8 @@ class DeformedGrid:
         print("   Création du GIF en cours...")
     
     def _capture_frame(self):
-        """Capture la frame actuelle pour l'enregistrement GIF"""
-        if not self.is_recording:
+        """Capture la frame actuelle pour l'enregistrement GIF (désactivé en mode web)"""
+        if WEB_MODE or not self.is_recording:
             return
             
         # Éviter de capturer trop de frames
@@ -525,7 +549,7 @@ class DeformedGrid:
             
         # Capturer chaque N-ième frame selon frame_skip
         frame_count = len(self.recorded_frames)
-        if frame_count % self.frame_skip == 0:
+        if frame_count % self.frame_skip == 0 and np is not None:
             # Convertir la surface pygame en array numpy
             surface_array = pygame.surfarray.array3d(self.screen)
             # Pygame utilise (width, height, channels), nous devons transposer en (height, width, channels)
@@ -572,9 +596,10 @@ class DeformedGrid:
         for i, frame in enumerate(self.recorded_frames):
             filename = f"frame_{timestamp}_{i:04d}.png"
             # Convertir numpy array vers surface pygame puis sauvegarder
-            frame_transposed = np.transpose(frame, (1, 0, 2))
-            surface = pygame.surfarray.make_surface(frame_transposed)
-            pygame.image.save(surface, filename)
+            if np is not None:
+                frame_transposed = np.transpose(frame, (1, 0, 2))
+                surface = pygame.surfarray.make_surface(frame_transposed)
+                pygame.image.save(surface, filename)
             
         print(f"✅ Frames sauvegardées: frame_{timestamp}_0000.png à frame_{timestamp}_{len(self.recorded_frames)-1:04d}.png")
 
@@ -652,20 +677,26 @@ class DeformedGrid:
 
                     elif event.key == pygame.K_m:
                         # Activer/désactiver la réactivité audio
-                        from distorsion_movement.audio_analyzer import AUDIO_AVAILABLE
-                        if not AUDIO_AVAILABLE:
-                            print("Audio non disponible - installez pyaudio et scipy")
+                        if WEB_MODE:
+                            print("🌐 Réactivité audio non disponible en mode web")
                         else:
-                            self.audio_reactive = not self.audio_reactive
-                            if self.audio_reactive:
-                                if not self.audio_analyzer:
-                                    self.audio_analyzer = AudioAnalyzer()
-                                self.audio_analyzer.start_audio_capture()
-                                print("🎵 Mode audio-réactif activé!")
-                            else:
-                                if self.audio_analyzer:
-                                    self.audio_analyzer.stop_audio_capture()
-                                print("🔇 Mode audio-réactif désactivé")
+                            try:
+                                from distorsion_movement.audio_analyzer import AUDIO_AVAILABLE
+                                if not AUDIO_AVAILABLE:
+                                    print("Audio non disponible - installez pyaudio et scipy")
+                                else:
+                                    self.audio_reactive = not self.audio_reactive
+                                    if self.audio_reactive:
+                                        if not self.audio_analyzer:
+                                            self.audio_analyzer = AudioAnalyzer()
+                                        self.audio_analyzer.start_audio_capture()
+                                        print("🎵 Mode audio-réactif activé!")
+                                    else:
+                                        if self.audio_analyzer:
+                                            self.audio_analyzer.stop_audio_capture()
+                                        print("🔇 Mode audio-réactif désactivé")
+                            except ImportError:
+                                print("🌐 Modules audio non disponibles en mode web")
                     elif event.key == pygame.K_t:
                         # Basculer le mode d'ajustement de la densité de grille
                         self.grid_density_mode = not self.grid_density_mode

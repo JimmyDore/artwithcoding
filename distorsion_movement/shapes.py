@@ -7,7 +7,6 @@ avec support de la rotation, du dimensionnement et du positionnement.
 
 import pygame
 import math
-import numpy as np
 from typing import Tuple, List
 
 
