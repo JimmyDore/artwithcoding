@@ -144,6 +144,18 @@ class ColorGenerator:
             r, g, b = colorsys.hsv_to_rgb((base_hue + hue_shift) % 1.0, sat, val)
             return (int(r*255), int(g*255), int(b*255))
 
+        elif color_scheme == "cyberpunk":
+            # Neon magenta & cyan with deep purple accents
+            hue_base = 0.83 if (index + (index // dimension)) % 2 == 0 else 0.5  # magenta or cyan
+            # Slight hue variation for organic feel
+            hue = (hue_base + (x_norm - 0.5) * 0.1 + (y_norm - 0.5) * 0.1) % 1.0
+            sat = 1.0
+            # Bright at center, darker towards edges
+            val = 0.6 + 0.4 * (1.0 - distance_to_center)
+            r, g, b = colorsys.hsv_to_rgb(hue, sat, val)
+            return (int(r * 255), int(g * 255), int(b * 255))
+
+
         
         # Par défaut, retourner blanc
         return (255, 255, 255)

@@ -77,8 +77,8 @@ def fullscreen_demo():
         dimension=32, 
         cell_size=20, 
         distortion_strength=1, 
-        distortion_fn="spiral_wave",
-        color_scheme="analogous", 
+        distortion_fn="circular",
+        color_scheme="cyberpunk", 
         color_animation=True, 
         fullscreen=False,
         shape_type="square",  # Commencer avec des carrés
