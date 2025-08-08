@@ -32,6 +32,9 @@ The distortions are based on several mathematical approaches:
 - **Sine Wave Distortions**: `sin(x * frequency + phase) * amplitude`
 - **Perlin Noise**: Smooth, organic-looking deformations
 - **Circular Distortions**: Radial distortions from center points
+- **Swirl Distortions**: Rotational vortex effects around the canvas center
+- **Ripple Distortions**: Concentric waves with tangential displacement
+- **Flow Distortions**: Curl-noise vector fields for organic movement
 - **Random Static**: Controlled randomness for chaotic effects
 
 Audio reactivity maps frequency bands to visual parameters:
@@ -46,14 +49,14 @@ Audio reactivity maps frequency bands to visual parameters:
 ```
 distorsion_movement/
 ├── __init__.py              # Package entry point & public API
-├── deformed_grid.py         # Main DeformedGrid class (384 lines)
+├── deformed_grid.py         # Main DeformedGrid class
 ├── enums.py                 # Type definitions (DistortionType, ColorScheme, ShapeType)
 ├── shapes.py                # Shape rendering system (7 shape types)
 ├── audio_analyzer.py        # Real-time audio analysis & FFT processing
 ├── colors.py                # Color generation algorithms
 ├── distortions.py           # Geometric distortion algorithms
 ├── demos.py                 # Demo functions & usage examples
-├── tests/                   # Comprehensive unit tests (109 tests)
+├── tests/                   # Comprehensive unit tests
 │   ├── test_shapes.py       # Shape rendering tests
 │   ├── test_enums.py        # Enum validation tests
 │   ├── test_deformed_grid.py # Grid functionality tests
@@ -63,7 +66,7 @@ distorsion_movement/
 
 ### Module Responsibilities
 
-#### 🎨 **`deformed_grid.py`** - Core Engine (384 lines)
+#### 🎨 **`deformed_grid.py`** - Core Engine
 - Main `DeformedGrid` class that orchestrates everything
 - Pygame rendering loop and event handling
 - Grid generation and position calculations
@@ -94,7 +97,7 @@ distorsion_movement/
 - HSV/RGB color space conversions
 
 #### 🌀 **`distortions.py`** - Geometric Engine 
-- 4 distortion algorithms (random, sine, Perlin, circular)
+- 7 distortion algorithms (random, sine, Perlin, circular, swirl, ripple, flow)
 - Mathematical transformation functions
 - Parameter generation for each square
 - Time-based animation calculations
@@ -108,7 +111,7 @@ distorsion_movement/
 - Command-line interface with multiple demo options
 
 #### 📝 **`enums.py`** - Type Safety
-- `DistortionType`: RANDOM, SINE, PERLIN, CIRCULAR
+- `DistortionType`: RANDOM, SINE, PERLIN, CIRCULAR, SWIRL, RIPPLE, FLOW
 - `ColorScheme`: MONOCHROME, GRADIENT, RAINBOW, COMPLEMENTARY, TEMPERATURE, PASTEL, NEON, OCEAN, FIRE, FOREST
 - `ShapeType`: SQUARE, CIRCLE, TRIANGLE, HEXAGON, PENTAGON, STAR, DIAMOND
 
@@ -213,6 +216,9 @@ audio_reactive_demo()  # Music visualization with hexagons
 - **Sine**: Smooth wave-based deformations
 - **Perlin**: Organic, noise-based distortions  
 - **Circular**: Radial distortions from center
+- **Swirl**: Rotational vortex effects with periodic waves
+- **Ripple**: Concentric wave patterns with tangential movement
+- **Flow**: Smooth curl-noise vector fields for organic flow
 
 ### Color Schemes
 - **Monochrome**: Single color variations
@@ -260,7 +266,7 @@ When audio reactivity is enabled, the system:
 
 ## 🧪 Testing
 
-Run the comprehensive test suite (109 tests):
+Run the comprehensive test suite:
 ```bash
 # Run all tests
 python -m pytest distorsion_movement/tests/ -v
@@ -281,7 +287,7 @@ python -m pytest distorsion_movement/tests/test_deformed_grid.py -v # Grid funct
 
 ## 🛣️ Development Roadmap
 
-The project has an extensive roadmap for future enhancements (see `improvements.md`):
+The project has an extensive roadmap for future enhancements (see `TODO.md`):
 
 ### Phase 1 (High Priority)
 - Mouse interaction (attraction/repulsion effects)
@@ -312,9 +318,9 @@ The project has an extensive roadmap for future enhancements (see `improvements.
 ✅ **Modular Architecture**: Clean separation of concerns, easily extensible  
 ✅ **Audio Reactivity**: Professional-grade music visualization  
 ✅ **Interactive Controls**: Live parameter adjustment and shape cycling  
-✅ **Rich Visual Combinations**: 7 shapes × 4 distortions × 10 colors = 280 combinations  
+✅ **Rich Visual Combinations**: 7 shapes × 7 distortions × 10 colors = 490 combinations  
 ✅ **Cross-platform**: Works on Windows, macOS, Linux  
-✅ **Comprehensive Testing**: 109 unit tests with 95%+ coverage  
+✅ **Comprehensive Testing**: Full unit test coverage  
 ✅ **Graceful Degradation**: Works without audio libraries  
 ✅ **Fullscreen Support**: Immersive viewing experience  
 
