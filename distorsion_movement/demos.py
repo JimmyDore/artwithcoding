@@ -77,7 +77,7 @@ def fullscreen_demo():
         dimension=80, 
         cell_size=20, 
         distortion_strength=1, 
-        distortion_fn="pulse",
+        distortion_fn="checkerboard",
         color_scheme="complementary", 
         color_animation=True, 
         fullscreen=True,

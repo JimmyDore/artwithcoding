@@ -15,6 +15,7 @@ class DistortionType(Enum):
     RIPPLE = "ripple"
     FLOW = "flow"
     PULSE = "pulse"
+    CHECKERBOARD = "checkerboard"
 
 
 class ColorScheme(Enum):

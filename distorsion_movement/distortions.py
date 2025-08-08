@@ -475,6 +475,45 @@ class DistortionEngine:
 
         return (new_x, new_y, rotation)
 
+    @staticmethod
+    def apply_distortion_checkerboard(
+        base_pos: Tuple[float, float],
+        params: dict,
+        cell_size: int,
+        distortion_strength: float,
+        time: float
+    ) -> Tuple[float, float, float]:
+        """
+        Checkerboard Warp:
+        Alternate distortion directions based on grid coordinates.
+        Even cells move in one direction, odd cells in the opposite.
+        Creates a tug-of-war effect across the grid.
+        """
+        x, y = base_pos
+
+        # Get grid coordinates
+        grid_x = int(x // cell_size)
+        grid_y = int(y // cell_size)
+
+        # Determine "polarity" of the cell (checkerboard pattern)
+        direction = 1 if (grid_x + grid_y) % 2 == 0 else -1
+
+        # Movement parameters
+        move_speed = 0.8   # cycles per second
+        max_offset = cell_size * 0.4 * distortion_strength
+
+        # Oscillation over time
+        offset = math.sin(time * move_speed * 2 * math.pi) * max_offset * direction
+
+        # Apply offset horizontally (you could also make vertical or diagonal variants)
+        new_x = x + offset
+        new_y = y
+
+        # Optional: small rotation for a more dynamic feel
+        rotation = direction * math.sin(time * move_speed * 2 * math.pi) * distortion_strength * 0.15
+
+        return (new_x, new_y, rotation)
+
     
     @staticmethod
     def get_distorted_positions(base_positions: List[Tuple[float, float]],
@@ -534,10 +573,15 @@ class DistortionEngine:
                 pos = DistortionEngine.apply_distortion_pulse(
                     base_pos, params, cell_size, distortion_strength, time, canvas_size
                 )
+            elif distortion_fn == DistortionType.CHECKERBOARD.value:
+                pos = DistortionEngine.apply_distortion_checkerboard(
+                    base_pos, params, cell_size, distortion_strength, time
+                )
             else:
                 pos = DistortionEngine.apply_distortion_random(
                     base_pos, params, cell_size, distortion_strength
                 )
+
             
             positions.append(pos)
         
