@@ -40,7 +40,7 @@ def create_deformed_grid(dimension: int = 64,
     """
     if fullscreen:
         # Pour le plein écran, utiliser une taille de fenêtre temporaire
-        canvas_size = (1200, 900)
+        canvas_size = (900, 900)
     else:
         canvas_size = (dimension * cell_size + 100, dimension * cell_size + 100)
     
@@ -77,7 +77,7 @@ def fullscreen_demo():
         dimension=80, 
         cell_size=20, 
         distortion_strength=1, 
-        distortion_fn="circular",
+        distortion_fn="pulse",
         color_scheme="complementary", 
         color_animation=True, 
         fullscreen=True,

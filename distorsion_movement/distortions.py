@@ -430,6 +430,53 @@ class DistortionEngine:
         )
     
     @staticmethod
+    def apply_distortion_pulse(base_pos: Tuple[float, float], 
+                                params: dict,
+                                cell_size: int,
+                                distortion_strength: float,
+                                time: float,
+                                canvas_size: Tuple[int, int]) -> Tuple[float, float, float]:
+        """
+        Pulsation avec effet ondulatoire radial + variation par cellule.
+        Cela donne un effet de respiration organique plutôt qu'un simple zoom.
+        """
+        center_x = canvas_size[0] // 2
+        center_y = canvas_size[1] // 2
+
+        dx_center = base_pos[0] - center_x
+        dy_center = base_pos[1] - center_y
+        distance = math.sqrt(dx_center**2 + dy_center**2)
+
+        if distance == 0:
+            return (base_pos[0], base_pos[1], 0)
+
+        # Paramètres de base
+        base_frequency = 1.2  # pulsations par seconde
+        base_amplitude = 0.4  # amplitude max
+        ripple_frequency = 0.04  # fréquence de l'ondulation sur la distance
+
+        # Décalage unique pour chaque cellule (random mais stable)
+        cell_phase_offset = params.get("phase_offset", random.uniform(0, 2 * math.pi))
+
+        # Facteur de pulsation basé sur distance + onde
+        pulse_wave = math.sin(time * base_frequency * 2 * math.pi 
+                            + distance * ripple_frequency 
+                            + cell_phase_offset)
+
+        # On normalise et applique l'amplitude (avec facteur de réduction pour intensité plus subtile)
+        pulse_factor = 1.0 + (pulse_wave * base_amplitude * distortion_strength * 0.05)
+
+        # Application du scaling radial
+        new_x = center_x + dx_center * pulse_factor
+        new_y = center_y + dy_center * pulse_factor
+
+        # Rotation subtile en fonction de la phase (réduite pour plus de subtilité)
+        rotation = pulse_wave * distortion_strength * 0.1
+
+        return (new_x, new_y, rotation)
+
+    
+    @staticmethod
     def get_distorted_positions(base_positions: List[Tuple[float, float]],
                                distortion_params: List[dict],
                                distortion_fn: str,
@@ -482,6 +529,10 @@ class DistortionEngine:
             elif distortion_fn == DistortionType.FLOW.value:
                 pos = DistortionEngine.apply_distortion_flow(
                     base_pos, params, cell_size, distortion_strength, time
+                )
+            elif distortion_fn == DistortionType.PULSE.value:
+                pos = DistortionEngine.apply_distortion_pulse(
+                    base_pos, params, cell_size, distortion_strength, time, canvas_size
                 )
             else:
                 pos = DistortionEngine.apply_distortion_random(
