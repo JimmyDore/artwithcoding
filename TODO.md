@@ -180,6 +180,8 @@
 - [X] shift + h is not working
 - [X] It seems I cannot go back to monochrome
 - [X] Fix or remove useless tests
+- [X] Fix the cell size => Should also resize the grid
+- [ ] Fix the lens distortion => Always the same size of lens based on the cell size
 - [ ] Audio feature is not working well
 
 ## 🏆 **Implementation Priority**
@@ -194,6 +196,7 @@
 - [X] GIF/MP4 export
 - [X] Add new distortion types (swirl, ripple, flow)
 - [X] Add options to play with the cell size
+
 - [ ] Add new distortion types (take a look at the new_distortions_again.md file for more ideas)
 - [ ] Add new color schemes
 - [ ] Add new shape types

@@ -99,11 +99,9 @@ class DeformedGrid:
         self.frame_skip = 1  # Capturer chaque frame par défaut
         self.recording_start_time = None
         
-        # Variables pour le contrôle dynamique de la taille des cellules
-        self.base_cell_size = cell_size  # Sauvegarder la taille originale
-        self.min_cell_size = 2  # Taille minimale
-        self.max_cell_size = 50  # Taille maximale
-        self.cell_size_mode = False  # Mode d'ajustement de la taille des cellules
+        # Variables pour le contrôle dynamique de la densité de grille
+        self.base_dimension = dimension  # Sauvegarder la dimension originale
+        self.grid_density_mode = False  # Mode d'ajustement de la densité de grille
         
         # Initialisation pygame
         pygame.init()
@@ -196,30 +194,49 @@ class DeformedGrid:
             for i in range(self.dimension * self.dimension):
                 self.shape_types.append(self.shape_type)
     
-    def _update_cell_size(self, new_size: int):
+    def _update_grid_density(self, increase: bool):
         """
-        Met à jour la taille des cellules et recalcule la grille.
+        Met à jour la densité de la grille en changeant le nombre de cellules.
+        Maintient approximativement la même taille totale de grille.
         
         Args:
-            new_size: Nouvelle taille des cellules en pixels
+            increase: Si True, augmente la densité (plus de cellules), sinon diminue
         """
-        # Limiter la taille dans les bornes définies
-        new_size = max(self.min_cell_size, min(self.max_cell_size, new_size))
-        
-        if new_size == self.cell_size:
-            return  # Pas de changement nécessaire
-        
-        self.cell_size = new_size
-        
-        # Recalculer les offsets pour centrer la grille avec la nouvelle taille
         current_size = self.fullscreen_size if self.is_fullscreen else self.windowed_size
+        
+        # Calculer la taille de grille cible (80% de la plus petite dimension d'écran)
+        target_grid_size = min(current_size[0], current_size[1]) * 0.8
+        
+        # Calculer la nouvelle dimension basée sur la direction
+        if increase:
+            new_dimension = min(self.dimension + 8, 256)  # Augmenter par incréments de 8, max 256
+        else:
+            new_dimension = max(self.dimension - 8, 8)   # Diminuer par incréments de 8, min 8
+        
+        if new_dimension == self.dimension:
+            return  # Pas de changement possible
+        
+        # Calculer la nouvelle taille de cellule pour maintenir la taille de grille
+        new_cell_size = max(2, int(target_grid_size / new_dimension))
+        
+        # Mettre à jour les paramètres
+        old_dimension = self.dimension
+        self.dimension = new_dimension
+        self.cell_size = new_cell_size
+        
+        # Recalculer les offsets pour centrer la grille
         grid_total_size = self.dimension * self.cell_size
         self.offset_x = (current_size[0] - grid_total_size) // 2
         self.offset_y = (current_size[1] - grid_total_size) // 2
         
-        # Régénérer les positions de base avec la nouvelle taille
+        # Régénérer tous les éléments de la grille pour la nouvelle dimension
         self._generate_base_positions()
+        self._generate_distortions()
+        self._generate_base_colors()
+        self._generate_shape_types()
         
+        direction = "augmentée" if increase else "diminuée"
+        print(f"Densité de grille {direction}: {old_dimension}x{old_dimension} → {self.dimension}x{self.dimension}")
         print(f"Taille des cellules: {self.cell_size}px (grille: {grid_total_size}x{grid_total_size}px)")
     
     def _get_distorted_positions(self) -> List[Tuple[float, float, float]]:
@@ -293,8 +310,8 @@ class DeformedGrid:
                 ("+/-", "Ajuster l'intensité de distorsion"),
                 ("R", "Régénérer les paramètres aléatoires"),
             ]),
-            ("Grille & Taille", [
-                ("T puis +/-", "Ajuster la taille des cellules"),
+            ("Grille & Densité", [
+                ("T puis +/-", "Ajuster la densité de grille (nombre de cellules)"),
             ]),
             ("Couleurs", [
                 ("C", "Changer le schéma de couleurs"),
@@ -498,7 +515,7 @@ class DeformedGrid:
         print("- H: Changer le type de forme")
         print("- Shift+H: Basculer mode formes mixtes")
         print("- +/-: Ajuster l'intensité de distorsion")
-        print("- T puis +/-: Ajuster la taille des cellules")
+        print("- T puis +/-: Ajuster la densité de grille (nombre de cellules)")
         print("- R: Régénérer les paramètres aléatoires")
         print("- S: Sauvegarder l'image")
         print("- G: Démarrer/arrêter l'enregistrement GIF")
@@ -565,24 +582,24 @@ class DeformedGrid:
                                     self.audio_analyzer.stop_audio_capture()
                                 print("🔇 Mode audio-réactif désactivé")
                     elif event.key == pygame.K_t:
-                        # Basculer le mode d'ajustement de la taille des cellules
-                        self.cell_size_mode = not self.cell_size_mode
-                        mode_text = "activé" if self.cell_size_mode else "désactivé"
-                        action_text = "Utilisez +/- pour ajuster" if self.cell_size_mode else ""
-                        print(f"Mode ajustement taille des cellules: {mode_text} {action_text}")
+                        # Basculer le mode d'ajustement de la densité de grille
+                        self.grid_density_mode = not self.grid_density_mode
+                        mode_text = "activé" if self.grid_density_mode else "désactivé"
+                        action_text = "Utilisez +/- pour ajuster" if self.grid_density_mode else ""
+                        print(f"Mode ajustement densité de grille: {mode_text} {action_text}")
                     elif event.key == pygame.K_PLUS or event.key == pygame.K_EQUALS:
-                        if self.cell_size_mode:
-                            # Augmenter la taille des cellules
-                            self._update_cell_size(self.cell_size + 1)
+                        if self.grid_density_mode:
+                            # Augmenter la densité de grille (plus de cellules)
+                            self._update_grid_density(increase=True)
                         else:
                             # Augmenter l'intensité de distorsion
                             self.distortion_strength = min(1.0, self.distortion_strength + 0.1)
                             self.base_distortion_strength = self.distortion_strength
                             print(f"Intensité: {self.distortion_strength:.1f}")
                     elif event.key == pygame.K_MINUS:
-                        if self.cell_size_mode:
-                            # Diminuer la taille des cellules
-                            self._update_cell_size(self.cell_size - 1)
+                        if self.grid_density_mode:
+                            # Diminuer la densité de grille (moins de cellules)
+                            self._update_grid_density(increase=False)
                         else:
                             # Diminuer l'intensité de distorsion
                             self.distortion_strength = max(0.0, self.distortion_strength - 0.1)
