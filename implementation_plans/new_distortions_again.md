@@ -23,7 +23,7 @@ Idea: Pick a moving “focus point” and distort nearby cells outward (like mag
 
 Effect: Feels like dragging a magnifying glass over the grid.
 
-6. Curl Warp (full)
+6. Curl Warp (full) ✅
 Idea: Use proper curl noise to create smooth swirling vector fields with no divergence.
 
 Effect: Flow-like, but with more chaotic patterns that loop back on themselves.

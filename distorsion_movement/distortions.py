@@ -877,6 +877,77 @@ class DistortionEngine:
         # Default: positions unchanged
         return (x, y, rotation)
 
+    @staticmethod
+    def apply_distortion_curl_warp(
+        base_pos: Tuple[float, float],
+        params: dict,
+        cell_size: int,
+        distortion_strength: float,
+        time: float
+    ) -> Tuple[float, float, float]:
+        """
+        Curl Warp:
+        Proper curl-noise-like distortion producing smooth, divergence-free
+        swirling vector fields that evolve over time.
+        """
+        x, y = base_pos
+
+        # Per-cell stable offset so every cell follows a unique part of the field
+        if "offset_x" not in params:
+            params["offset_x"] = random.uniform(0, 1000)
+            params["offset_y"] = random.uniform(0, 1000)
+        ox = params["offset_x"]
+        oy = params["offset_y"]
+
+        # Noise parameters
+        scale = 0.015   # spatial scale of the noise field
+        tscale = 0.6    # temporal speed
+        eps = 0.001     # small step for partial derivatives
+
+        # Simple pseudo-Perlin noise function using layered sin/cos
+        def pseudo_noise(px, py, t):
+            return (
+                math.sin(px) * math.cos(py * 1.3) +
+                math.sin(px * 0.7 + t) * math.cos(py * 0.9 - t * 1.1)
+            )
+
+        # Sample noise at our point
+        px = (x + ox) * scale
+        py = (y + oy) * scale
+        tt = time * tscale
+
+        # Compute derivatives for curl
+        n1 = pseudo_noise(px, py, tt)
+        dn1_dy = (pseudo_noise(px, py + eps, tt) - pseudo_noise(px, py - eps, tt)) / (2 * eps)
+        dn1_dx = (pseudo_noise(px + eps, py, tt) - pseudo_noise(px - eps, py, tt)) / (2 * eps)
+
+        # Second noise with different phase to avoid symmetry
+        n2 = pseudo_noise(px + 5.2, py - 3.7, tt + 2.5)
+        dn2_dy = (pseudo_noise(px + 5.2, py - 3.7 + eps, tt + 2.5) - pseudo_noise(px + 5.2, py - 3.7 - eps, tt + 2.5)) / (2 * eps)
+        dn2_dx = (pseudo_noise(px + 5.2 + eps, py - 3.7, tt + 2.5) - pseudo_noise(px + 5.2 - eps, py - 3.7, tt + 2.5)) / (2 * eps)
+
+        # Curl = (∂n2/∂x - ∂n1/∂y, ∂n1/∂x - ∂n2/∂y)
+        curl_x = dn2_dx - dn1_dy
+        curl_y = dn1_dx - dn2_dy
+
+        # Normalize & scale displacement
+        mag = math.sqrt(curl_x**2 + curl_y**2)
+        if mag > 0:
+            curl_x /= mag
+            curl_y /= mag
+
+        max_offset = cell_size * 0.45 * distortion_strength
+        disp_x = curl_x * max_offset
+        disp_y = curl_y * max_offset
+
+        # Apply displacement
+        new_x = x + disp_x
+        new_y = y + disp_y
+
+        # Rotation: proportional to curl magnitude
+        rotation = mag * distortion_strength * 0.4
+
+        return (new_x, new_y, rotation)
 
     
     @staticmethod
@@ -967,6 +1038,10 @@ class DistortionEngine:
                 )
             elif distortion_fn == DistortionType.NOISE_ROTATION.value:
                 pos = DistortionEngine.apply_distortion_noise_rotation(
+                    base_pos, params, cell_size, distortion_strength, time
+                )
+            elif distortion_fn == DistortionType.CURL_WARP.value:
+                pos = DistortionEngine.apply_distortion_curl_warp(
                     base_pos, params, cell_size, distortion_strength, time
                 )
             else:
