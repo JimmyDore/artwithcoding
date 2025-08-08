@@ -8,7 +8,7 @@ Idea: Apply a horizontal or vertical shear based on the y or x coordinate and ti
 
 Effect: Produces a wave-like diagonal stretching, like a deck of cards being pushed sideways.
 
-3. Pulse / Breathing
+3. Pulse / Breathing ✅
 Idea: Scale positions radially from the center in and out over time, like a heartbeat or breathing motion.
 
 Effect: Everything expands and contracts together, very hypnotic.
@@ -28,12 +28,17 @@ Idea: Use proper curl noise to create smooth swirling vector fields with no dive
 
 Effect: Flow-like, but with more chaotic patterns that loop back on themselves.
 
-7. Checkerboard Warp
+7. Checkerboard Warp ✅
 Idea: Alternate distortion directions based on grid coordinates (e.g., even cells move right, odd cells move left).
 
 Effect: Creates a “tug-of-war” effect across the grid.
 
-8. Tornado Column
+7. Checkerboard Warp Diagonal ✅
+Idea: Alternate distortion directions based on grid coordinates (e.g., even cells move right, odd cells move left).
+
+Effect: Creates a “tug-of-war” effect across the grid.
+
+8. Tornado Column ✅
 Idea: Swirl effect, but rotation speed increases as you get closer to the center axis (like a tornado).
 
 Effect: Strong dynamic pull inward while spinning.

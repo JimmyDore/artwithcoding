@@ -74,8 +74,8 @@ def quick_demo():
 def fullscreen_demo():
     """Démonstration en plein écran avec formes mixtes - PARFAIT POUR TESTER LES NOUVELLES FORMES! 🔷🔶⭐"""
     grid = create_deformed_grid(
-        dimension=80, 
-        cell_size=50, 
+        dimension=128, 
+        cell_size=20, 
         distortion_strength=1, 
         distortion_fn="checkerboard_diagonal",
         color_scheme="complementary", 
