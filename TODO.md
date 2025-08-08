@@ -223,6 +223,8 @@
   - [ ] how a distorsion function works, what parameters and what it basically does (compute next position and rotations based on ...)
   - [ ] the new indicators screen
 
+- [ ] Host on web ? pygbag https://github.com/pygame-web/pygbag
+
 - [ ] Mouse interaction (attraction/repulsion)
   - in a pull request, not working well
 - [ ] Audio reactive features
