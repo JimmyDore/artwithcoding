@@ -45,6 +45,7 @@ class ColorScheme(Enum):
     # FOREST = "forest"
     ANALOGUOUS = "analogous"
     CYBERPUNK = "cyberpunk"
+    AURORA_BOREALIS = "aurora_borealis"
 
 
 class ShapeType(Enum):

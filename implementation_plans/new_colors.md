@@ -11,7 +11,7 @@
 
 - ✅ Cyberpunk → neon magenta, cyan, and deep purple. 
 - Sunset → warm yellow → orange → pink → purple gradient.
-- Aurora Borealis → teal → green → purple with soft blending.
+- ✅ Aurora Borealis → teal → green → purple with soft blending.
 - Desert → sandy beige, warm oranges, muted browns.
 
 ## Texture & subtle contrast

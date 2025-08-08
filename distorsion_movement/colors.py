@@ -155,6 +155,17 @@ class ColorGenerator:
             r, g, b = colorsys.hsv_to_rgb(hue, sat, val)
             return (int(r * 255), int(g * 255), int(b * 255))
 
+        elif color_scheme == "aurora_borealis":
+            # Aurora Borealis - teal, green, purple flowing together
+            # Map distance and position into hue shifts for a wave-like effect
+            hue_center = 0.4 + math.sin((x_norm + y_norm + distance_to_center) * 4) * 0.1  # base around green/teal
+            hue = (hue_center + (math.sin(index * 0.05) * 0.15)) % 1.0  # shifting into purple/blue range
+            sat = 0.7 + 0.3 * math.sin(y_norm * 5 + distance_to_center * 3)  # dynamic saturation
+            val = 0.6 + 0.4 * math.cos(x_norm * 4 + distance_to_center * 2)  # gentle brightness movement
+            r, g, b = colorsys.hsv_to_rgb(hue, sat, val)
+            return (int(r * 255), int(g * 255), int(b * 255))
+
+
 
         
         # Par défaut, retourner blanc
