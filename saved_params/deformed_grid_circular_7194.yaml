@@ -1,0 +1,32 @@
+animation_speed: 0.02
+audio_reactive: false
+background_color:
+- 20
+- 20
+- 30
+base_dimension: 32
+canvas_size:
+- 740
+- 740
+cell_size: 24
+color_animation: true
+color_scheme: cyberpunk
+dimension: 24
+distortion_fn: circular
+distortion_strength: 1
+grid_density_mode: true
+is_fullscreen: false
+mixed_shapes: false
+saved_at: '2025-08-09T12:01:06.749172'
+saved_filename: deformed_grid_circular_7194.yaml
+shape_type: square
+show_help: false
+show_status: true
+square_color:
+- 255
+- 255
+- 255
+time: 71.94000000000283
+windowed_size:
+- 740
+- 740

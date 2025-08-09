@@ -22,6 +22,8 @@ from distorsion_movement.shapes import get_shape_renderer_function
 
 import os 
 import imageio
+import yaml
+import glob
 
 
 class DeformedGrid:
@@ -106,6 +108,11 @@ class DeformedGrid:
         # Variables pour le contrôle dynamique de la densité de grille
         self.base_dimension = dimension  # Sauvegarder la dimension originale
         self.grid_density_mode = False  # Mode d'ajustement de la densité de grille
+        
+        # Variables pour l'itération à travers les scènes sauvegardées
+        self.saved_scenes = []
+        self.current_scene_index = -1
+        self.scene_iteration_mode = False
         
         # Initialisation pygame
         pygame.init()
@@ -330,8 +337,13 @@ class DeformedGrid:
             ]),
             ("Audio & Sauvegarde", [
                 ("M", "Activer/désactiver la réactivité audio"),
-                ("S", "Sauvegarder l'image actuelle"),
+                ("S", "Sauvegarder l'image actuelle (+ paramètres YAML)"),
                 ("G", "Démarrer/arrêter l'enregistrement GIF"),
+            ]),
+            ("Scènes Sauvegardées", [
+                ("L", "Charger la scène suivante"),
+                ("K", "Charger la scène précédente"),
+                ("P", "Actualiser la liste des scènes"),
             ])
         ]
         
@@ -725,6 +737,15 @@ class DeformedGrid:
                             self.stop_gif_recording()
                         else:
                             self.start_gif_recording()
+                    elif event.key == pygame.K_l:
+                        # Charger la scène suivante
+                        self.load_next_scene()
+                    elif event.key == pygame.K_k:
+                        # Charger la scène précédente
+                        self.load_previous_scene()
+                    elif event.key == pygame.K_p:
+                        # Actualiser la liste des scènes sauvegardées
+                        self.refresh_saved_scenes()
             
             self.update()
             self.render()
@@ -769,10 +790,183 @@ class DeformedGrid:
         self._generate_base_positions()
     
     def save_image(self, filename: str):
-        """Sauvegarde l'image actuelle"""
+        """Sauvegarde l'image actuelle avec ses paramètres"""
 
-        # Create the folder if it doesn't exist
+        # Create the folders if they don't exist
         os.makedirs("images", exist_ok=True)
-        filename = os.path.join("images", filename)
-        pygame.image.save(self.screen, filename)
-        print(f"Image sauvegardée: {filename}")
+        os.makedirs("saved_params", exist_ok=True)
+        
+        # Save the image
+        image_path = os.path.join("images", filename)
+        pygame.image.save(self.screen, image_path)
+        
+        # Save the parameters in YAML format
+        base_name = os.path.splitext(filename)[0]  # Remove extension
+        param_filename = f"{base_name}.yaml"
+        param_path = os.path.join("saved_params", param_filename)
+        
+        self.save_parameters(param_path)
+        
+        print(f"Image sauvegardée: {image_path}")
+        print(f"Paramètres sauvegardés: {param_path}")
+    
+    def get_current_parameters(self) -> dict:
+        """Retourne tous les paramètres actuels de la grille"""
+        return {
+            # Core parameters
+            "dimension": self.dimension,
+            "cell_size": self.cell_size,
+            "canvas_size": list(self.canvas_size),
+            "distortion_strength": self.distortion_strength,
+            "distortion_fn": self.distortion_fn,
+            "background_color": list(self.background_color),
+            "square_color": list(self.square_color),
+            "color_scheme": self.color_scheme,
+            "color_animation": self.color_animation,
+            "audio_reactive": self.audio_reactive,
+            "shape_type": self.shape_type,
+            "mixed_shapes": self.mixed_shapes,
+            
+            # Animation parameters
+            "time": self.time,
+            "animation_speed": self.animation_speed,
+            
+            # Display settings
+            "show_help": self.show_help,
+            "show_status": self.show_status,
+            "is_fullscreen": self.is_fullscreen,
+            "windowed_size": list(self.windowed_size),
+            
+            # Grid density settings
+            "base_dimension": self.base_dimension,
+            "grid_density_mode": self.grid_density_mode,
+            
+            # Grid positioning (calculated automatically but saved for reference)
+            "offset_x": self.offset_x,
+            "offset_y": self.offset_y,
+            
+            # Metadata
+            "saved_at": datetime.datetime.now().isoformat(),
+            "saved_filename": None  # Will be set when saving
+        }
+    
+    def save_parameters(self, filepath: str):
+        """Sauvegarde les paramètres actuels dans un fichier YAML"""
+        params = self.get_current_parameters()
+        params["saved_filename"] = os.path.basename(filepath)
+        
+        with open(filepath, 'w', encoding='utf-8') as f:
+            yaml.dump(params, f, default_flow_style=False, indent=2, allow_unicode=True)
+    
+    def load_parameters(self, filepath: str):
+        """Charge les paramètres depuis un fichier YAML et les applique"""
+        if not os.path.exists(filepath):
+            print(f"Fichier de paramètres non trouvé: {filepath}")
+            return False
+        
+        try:
+            with open(filepath, 'r', encoding='utf-8') as f:
+                params = yaml.safe_load(f)
+            
+            # Apply core parameters
+            self.dimension = params.get("dimension", self.dimension)
+            self.cell_size = params.get("cell_size", self.cell_size)
+            self.canvas_size = tuple(params.get("canvas_size", self.canvas_size))
+            self.distortion_strength = params.get("distortion_strength", self.distortion_strength)
+            self.distortion_fn = params.get("distortion_fn", self.distortion_fn)
+            self.background_color = tuple(params.get("background_color", self.background_color))
+            self.square_color = tuple(params.get("square_color", self.square_color))
+            self.color_scheme = params.get("color_scheme", self.color_scheme)
+            self.color_animation = params.get("color_animation", self.color_animation)
+            self.audio_reactive = params.get("audio_reactive", self.audio_reactive)
+            self.shape_type = params.get("shape_type", self.shape_type)
+            self.mixed_shapes = params.get("mixed_shapes", self.mixed_shapes)
+            
+            # Apply animation parameters
+            self.time = params.get("time", self.time)
+            self.animation_speed = params.get("animation_speed", self.animation_speed)
+            
+            # Apply display settings
+            self.show_help = params.get("show_help", self.show_help)
+            self.show_status = params.get("show_status", self.show_status)
+            
+            # Apply grid density settings
+            self.base_dimension = params.get("base_dimension", self.base_dimension)
+            self.grid_density_mode = params.get("grid_density_mode", self.grid_density_mode)
+            
+            # Update base distortion strength for audio reactivity
+            self.base_distortion_strength = self.distortion_strength
+            
+            # Recalculate offsets to center the grid with new dimensions
+            grid_total_size = self.dimension * self.cell_size
+            self.offset_x = (self.canvas_size[0] - grid_total_size) // 2
+            self.offset_y = (self.canvas_size[1] - grid_total_size) // 2
+            
+            # Regenerate everything with new parameters
+            self._generate_base_positions()
+            self._generate_distortions()
+            self._generate_base_colors()
+            self._generate_shape_types()
+            
+            print(f"Paramètres chargés depuis: {filepath}")
+            print(f"Scene: {params.get('distortion_fn', 'N/A')} | {params.get('color_scheme', 'N/A')} | {params.get('shape_type', 'N/A')}")
+            return True
+            
+        except Exception as e:
+            print(f"Erreur lors du chargement des paramètres: {e}")
+            return False
+    
+    def get_saved_scenes(self) -> list:
+        """Retourne la liste des scènes sauvegardées (fichiers YAML)"""
+        if not os.path.exists("saved_params"):
+            return []
+        
+        yaml_files = glob.glob(os.path.join("saved_params", "*.yaml"))
+        yaml_files.sort(key=os.path.getmtime, reverse=True)  # Sort by modification time, newest first
+        return yaml_files
+    
+    def initialize_scene_iteration(self):
+        """Initialise l'itération des scènes sauvegardées"""
+        self.saved_scenes = self.get_saved_scenes()
+        if self.saved_scenes:
+            self.current_scene_index = 0
+            self.scene_iteration_mode = True
+            print(f"🎬 Mode itération de scènes activé! {len(self.saved_scenes)} scène(s) trouvée(s)")
+            print("🎮 Utilisez L (suivant) et K (précédent) pour naviguer")
+            return True
+        else:
+            print("🚫 Aucune scène sauvegardée trouvée dans le dossier saved_params/")
+            return False
+    
+    def load_next_scene(self):
+        """Charge la prochaine scène sauvegardée"""
+        if not self.scene_iteration_mode or not self.saved_scenes:
+            if not self.initialize_scene_iteration():
+                return
+        
+        self.current_scene_index = (self.current_scene_index + 1) % len(self.saved_scenes)
+        scene_file = self.saved_scenes[self.current_scene_index]
+        scene_name = os.path.splitext(os.path.basename(scene_file))[0]
+        
+        if self.load_parameters(scene_file):
+            print(f"🎬 Scène {self.current_scene_index + 1}/{len(self.saved_scenes)}: {scene_name}")
+    
+    def load_previous_scene(self):
+        """Charge la scène précédente sauvegardée"""
+        if not self.scene_iteration_mode or not self.saved_scenes:
+            if not self.initialize_scene_iteration():
+                return
+        
+        self.current_scene_index = (self.current_scene_index - 1) % len(self.saved_scenes)
+        scene_file = self.saved_scenes[self.current_scene_index]
+        scene_name = os.path.splitext(os.path.basename(scene_file))[0]
+        
+        if self.load_parameters(scene_file):
+            print(f"🎬 Scène {self.current_scene_index + 1}/{len(self.saved_scenes)}: {scene_name}")
+    
+    def refresh_saved_scenes(self):
+        """Actualise la liste des scènes sauvegardées"""
+        self.saved_scenes = self.get_saved_scenes()
+        if self.saved_scenes and self.current_scene_index >= len(self.saved_scenes):
+            self.current_scene_index = 0
+        print(f"🔄 Liste des scènes actualisée: {len(self.saved_scenes)} scène(s) trouvée(s)")

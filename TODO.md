@@ -208,13 +208,20 @@
 - [X] Add options to play with the cell size
 - [X] Add the name of the distortion, the intensity, and the number of cells on the screen
 
+- [X] Add an option to export the parameters of the current scene (just export the params.json file) and find a way to load it automatically when the app is launched. Maybe reuse the save image feature, and save a json file with the parameters. Maybe add an option to iterate through all saved scenes.
+
 - [ ] Add new shape types
 - [ ] Add new color schemes (inspire from pastel color in archive)
 - [ ] Add new distortion types (take a look at the new_distortions_again.md file for more ideas)
 
-- [ ] Add an option to export the parameters of the current scene (just export the params.json file) and find a way to load it automatically when the app is launched. Maybe reuse the save image feature, and save a json file with the parameters. Maybe add an option to iterate through all saved scenes.
+- [ ] Get rid of the audio features, it's not working well
+- [ ] Add a keyboard shortcut to do previous distorsion/shape/color scheme
+- [ ] The menu is too big, on one column, maybe 2 columns now ? 
 
 - [ ] Refactor the shapes, colors, and distorsions to be more modular and easier to add new ones. (one file for each type of distorsion, one file for each shape, one file for each color scheme)
+
+- [ ] Clean up useless stuff in README.md
+- [ ] Clean up useless stuff in TODO.md
 
 - Add in README: 
   - [ ] the new distorsions (from pulse, pulse not included)
@@ -224,6 +231,7 @@
   - [ ] the status display
   - [ ] how a distorsion function works, what parameters and what it basically does (compute next position and rotations based on ...)
   - [ ] the new indicators screen
+  - [ ] the saved/load scenes feature
 
 - [ ] Host on web ? pygbag https://github.com/pygame-web/pygbag
   - in a pull request, not working well
