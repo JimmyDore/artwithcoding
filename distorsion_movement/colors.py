@@ -356,7 +356,22 @@ class ColorGenerator:
 
             # Otherwise, cycle through bright primaries
             return primaries[(row + col) % len(primaries)]
-    
+
+        elif color_scheme == "vaporwave":
+            # Vaporwave - soft pastel neons: lavender, cyan, peach, pink
+            lavender = (181, 126, 220)
+            cyan     = (0, 255, 255)
+            peach    = (255, 203, 164)
+            pink     = (255, 105, 180)
+
+            palette = [lavender, cyan, peach, pink]
+
+            row = index // dimension
+            col = index % dimension
+
+            # Checkerboard pattern cycling through palette
+            return palette[(row + col) % len(palette)]
+
         # Par défaut, retourner blanc
         return (255, 255, 255)
 
