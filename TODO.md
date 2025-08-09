@@ -224,6 +224,8 @@
   - [ ] the new indicators screen
 
 - [ ] Host on web ? pygbag https://github.com/pygame-web/pygbag
+  - in a pull request, not working well
+  - maybe need to migrate to webgl and use f*ckin' js ?
 
 - [ ] Mouse interaction (attraction/repulsion)
   - in a pull request, not working well

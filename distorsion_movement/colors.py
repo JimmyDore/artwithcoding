@@ -243,6 +243,24 @@ class ColorGenerator:
             else:
                 return color_b
 
+        elif color_scheme == "desert":
+            # Desert theme - sandy beige, warm orange, muted brown
+            sand     = (237, 201, 175)  # sandy beige
+            orange   = (210, 125, 45)   # warm orange
+            brown    = (102, 51, 0)     # muted brown
+
+            # Use distance and position to vary tones
+            if distance_to_center < 0.33:
+                # Center: light sand
+                return sand
+            elif distance_to_center < 0.66:
+                # Mid ring: warm orange
+                return orange
+            else:
+                # Outer ring: deep brown
+                return brown
+
+
         # Par défaut, retourner blanc
         return (255, 255, 255)
 

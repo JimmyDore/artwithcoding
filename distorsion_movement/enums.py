@@ -48,6 +48,7 @@ class ColorScheme(Enum):
     AURORA_BOREALIS = "aurora_borealis"
     INFRARED_THERMAL = "infrared_thermal"
     DUOTONE_ACCENT = "duotone_accent"
+    DESERT = "desert"
 
 
 class ShapeType(Enum):
