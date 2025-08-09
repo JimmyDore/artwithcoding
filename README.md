@@ -1,6 +1,6 @@
 # 🎨 Distorsion Movement - Interactive Generative Art Engine
 
-**Distorsion Movement** is a real-time generative art platform that creates mesmerizing visual experiences through geometrically deformed grids. The system generates dynamic, interactive artwork by applying mathematical distortions to regular grids of multiple geometric shapes (squares, circles, triangles, hexagons, pentagons, stars, diamonds), with optional audio-reactive capabilities for music visualization.
+**Distorsion Movement** is a real-time generative art platform that creates mesmerizing visual experiences through geometrically deformed grids. The system generates dynamic, interactive artwork by applying mathematical distortions to regular grids of multiple geometric shapes (squares, circles, triangles, hexagons, pentagons, stars, diamonds)
 
 [![Watch the demo on YouTube](https://img.youtube.com/vi/GWTRef1pFJo/0.jpg)](https://www.youtube.com/watch?v=GWTRef1pFJo)
 
@@ -8,10 +8,9 @@
 
 ### What It Does
 The project creates animated grids of geometric shapes where each shape can be:
-- **Multiple shape types** including squares, circles, triangles, hexagons, pentagons, stars, and diamonds
-- **Geometrically distorted** using mathematical functions (sine waves, Perlin noise, circular patterns)
-- **Dynamically colored** using various schemes (rainbow, gradient, neon, temperature-based, etc.)
-- **Audio-reactive** to music and sound input in real-time
+- **Multiple shape types** including squares, circles, triangles, hexagons, pentagons, stars, diamonds, and fractal Koch snowflakes
+- **Geometrically distorted** using 20 mathematical functions (sine waves, Perlin noise, circular patterns, spiral warps, lens effects, moiré patterns, etc.)
+- **Dynamically colored** using 20 schemes (rainbow, gradient, neon, cyberpunk, thermal, vaporwave, etc.)
 - **Interactively controlled** through keyboard shortcuts and parameters
 - **Mixed or uniform** shape distribution across the grid
 
@@ -22,8 +21,7 @@ The core architecture follows a modular design with clear separation of concerns
 1. **Grid Generation**: Creates a regular NxN grid of geometric shapes with base positions
 2. **Shape System**: Supports 7 different shape types with unified rendering architecture
 3. **Distortion Engine**: Applies mathematical transformations to deform shape positions and orientations
-4. **Color System**: Generates dynamic colors based on position, time, and audio input
-5. **Audio Analysis**: Real-time FFT analysis of microphone input to extract bass, mids, highs, and beat detection
+4. **Color System**: Generates dynamic colors based on position, time, and color animation input
 6. **Rendering**: Real-time pygame-based visualization with 60fps target
 
 ### Mathematical Foundation
@@ -37,12 +35,6 @@ The distortions are based on several mathematical approaches:
 - **Flow Distortions**: Curl-noise vector fields for organic movement
 - **Random Static**: Controlled randomness for chaotic effects
 
-Audio reactivity maps frequency bands to visual parameters:
-- 🥁 **Bass (20-250Hz)** → Distortion intensity
-- 🎸 **Mids (250Hz-4kHz)** → Color hue rotation  
-- ✨ **Highs (4kHz+)** → Brightness boosts
-- 💥 **Beat detection** → Flash effects
-- 📢 **Overall volume** → Animation speed
 
 ## 🏗️ Project Structure
 
@@ -52,7 +44,6 @@ distorsion_movement/
 ├── deformed_grid.py         # Main DeformedGrid class
 ├── enums.py                 # Type definitions (DistortionType, ColorScheme, ShapeType)
 ├── shapes.py                # Shape rendering system (7 shape types)
-├── audio_analyzer.py        # Real-time audio analysis & FFT processing
 ├── colors.py                # Color generation algorithms
 ├── distortions.py           # Geometric distortion algorithms
 ├── demos.py                 # Demo functions & usage examples
@@ -82,18 +73,10 @@ distorsion_movement/
 - Consistent interface with fallback error handling
 - Optimized drawing functions using pygame primitives
 
-#### 🎵 **`audio_analyzer.py`** - Audio Processing
-- Real-time microphone input capture using PyAudio
-- FFT analysis for frequency separation
-- Beat detection algorithms
-- Thread-safe audio data sharing
-- Graceful degradation when audio libraries unavailable
-
 #### 🌈 **`colors.py`** - Color Generation
 - 10 different color schemes (monochrome, gradient, rainbow, neon, etc.)
 - Position-based color calculations
 - Time-based color animations
-- Audio-reactive color modulation
 - HSV/RGB color space conversions
 
 #### 🌀 **`distortions.py`** - Geometric Engine 
@@ -101,7 +84,6 @@ distorsion_movement/
 - Mathematical transformation functions
 - Parameter generation for each square
 - Time-based animation calculations
-- Audio-reactive distortion intensity
 
 #### 🎮 **`demos.py`** - Usage Examples
 - Pre-configured demonstration functions
@@ -111,9 +93,9 @@ distorsion_movement/
 - Command-line interface with multiple demo options
 
 #### 📝 **`enums.py`** - Type Safety
-- `DistortionType`: RANDOM, SINE, PERLIN, CIRCULAR, SWIRL, RIPPLE, FLOW
-- `ColorScheme`: MONOCHROME, GRADIENT, RAINBOW, COMPLEMENTARY, TEMPERATURE, PASTEL, NEON, OCEAN, FIRE, FOREST
-- `ShapeType`: SQUARE, CIRCLE, TRIANGLE, HEXAGON, PENTAGON, STAR, DIAMOND
+- `DistortionType`: RANDOM, SINE, PERLIN, CIRCULAR, SWIRL, RIPPLE, FLOW, PULSE, CHECKERBOARD, CHECKERBOARD_DIAGONAL, TORNADO, SPIRAL, SHEAR, LENS, SPIRAL_WAVE, NOISE_ROTATION, CURL_WARP, FRACTAL_NOISE, MOIRE, KALEIDOSCOPE_TWIST
+- `ColorScheme`: MONOCHROME, BLACK_WHITE_RADIAL, BLACK_WHITE_ALTERNATING, GRADIENT, RAINBOW, COMPLEMENTARY, PASTEL, NEON, ANALOGOUS, CYBERPUNK, AURORA_BOREALIS, INFRARED_THERMAL, DUOTONE_ACCENT, DESERT, METALLICS, REGGAE, SUNSET, POP_ART, VAPORWAVE, CANDY_SHOP
+- `ShapeType`: SQUARE, CIRCLE, TRIANGLE, HEXAGON, PENTAGON, STAR, DIAMOND, KOCH_SNOWFLAKE
 
 ## 🚀 Quick Start
 
@@ -138,46 +120,10 @@ grid = DeformedGrid(
     color_scheme=ColorScheme.NEON.value,       # Neon colors
     shape_type=ShapeType.STAR.value,           # Star shapes
     mixed_shapes=False,                        # Single shape type
-    audio_reactive=True,                       # Enable audio reactivity
     color_animation=True                       # Animate colors
 )
 
 grid.run_interactive()
-```
-
-### Shape Configuration Examples
-```python
-# Mixed shapes grid (variety of shapes)
-mixed_grid = DeformedGrid(
-    dimension=80,
-    shape_type="hexagon",      # Base shape type
-    mixed_shapes=True,         # Enable shape variety
-    color_scheme="rainbow"
-)
-
-# Single shape type (all circles)
-circle_grid = DeformedGrid(
-    dimension=60,
-    shape_type="circle",       # Only circles
-    mixed_shapes=False,        # Uniform shapes
-    distortion_fn="circular"
-)
-```
-
-### Available Demo Functions
-```python
-from distorsion_movement.demos import (
-    quick_demo, fullscreen_demo, audio_reactive_demo,
-    star_demo, hexagon_demo, triangle_demo, shapes_showcase_demo
-)
-
-quick_demo()           # Basic windowed demo
-fullscreen_demo()      # Mixed shapes fullscreen experience  
-star_demo()            # Star shapes only
-hexagon_demo()         # Hexagon patterns
-triangle_demo()        # Triangle formations
-shapes_showcase_demo() # Mixed shapes showcase
-audio_reactive_demo()  # Music visualization with hexagons
 ```
 
 ## 🎛️ Interactive Controls
@@ -185,7 +131,6 @@ audio_reactive_demo()  # Music visualization with hexagons
 | Key | Action |
 |-----|--------|
 | `F` | Toggle fullscreen/windowed mode |
-| `M` | Toggle audio reactivity on/off |
 | `C` | Cycle through color schemes |
 | `SPACE` | Cycle through distortion types |
 | `H` | **NEW**: Cycle through shape types |
@@ -206,6 +151,7 @@ audio_reactive_demo()  # Music visualization with hexagons
 - **Pentagon**: Five-sided polygonal forms
 - **Star**: Five-pointed star shapes
 - **Diamond**: Rotated square formations
+- **Koch Snowflake**: Fractal snowflake patterns with recursive geometry
 
 ### Shape Modes
 - **Single Shape**: All cells use the same shape type (uniform grid)
@@ -219,50 +165,49 @@ audio_reactive_demo()  # Music visualization with hexagons
 - **Swirl**: Rotational vortex effects with periodic waves
 - **Ripple**: Concentric wave patterns with tangential movement
 - **Flow**: Smooth curl-noise vector fields for organic flow
+- **Pulse**: Rhythmic radial breathing with wave-like pulsations
+- **Checkerboard**: Alternating directional movement in grid pattern
+- **Checkerboard Diagonal**: Diagonal tug-of-war between neighboring cells
+- **Tornado**: Swirling vortex with increased rotation near center
+- **Spiral**: Galaxy-like spiral motion with radius oscillation
+- **Shear**: Horizontal/vertical skewing with wave propagation
+- **Lens**: Dynamic magnification effect with moving focus point
+- **Spiral Wave**: Combined circular ripples with rotational motion
+- **Noise Rotation**: Positions stable, rotation driven by smooth noise field
+- **Curl Warp**: Divergence-free swirling vector fields
+- **Fractal Noise**: Multi-octave organic terrain-like distortions
+- **Moiré**: Interference patterns from overlapping wave frequencies
+- **Kaleidoscope Twist**: Radial symmetry with mirrored sectors and melting
 
 ### Color Schemes
 - **Monochrome**: Single color variations
-- **Gradient**: Smooth color transitions
+- **Black White Radial**: Center-to-edge black and white distribution
+- **Black White Alternating**: Classic checkerboard pattern
+- **Gradient**: Smooth diagonal color transitions
 - **Rainbow**: Full spectrum cycling
 - **Complementary**: Alternating opposite colors
-- **Temperature**: Cool to warm transitions
 - **Pastel**: Soft, muted tones
 - **Neon**: Bright, electric colors
-- **Ocean**: Blue-green aquatic themes
-- **Fire**: Red-orange-yellow flames
-- **Forest**: Green-brown natural tones
+- **Analogous**: Harmonious neighboring hues with subtle variations
+- **Cyberpunk**: Neon magenta and cyan with deep purple accents
+- **Aurora Borealis**: Flowing teal, green, and purple like northern lights
+- **Infrared Thermal**: Classic thermal imaging progression (blue→cyan→green→yellow→orange→red→white)
+- **Duotone Accent**: Two main colors with rare bright yellow accent pops
+- **Desert**: Sandy beige, warm orange, and muted brown tones
+- **Metallics**: Smooth blends between gold, silver, and bronze
+- **Reggae**: Green, yellow, and red in radial distribution
+- **Sunset**: Warm gradient from yellow through orange and pink to purple
+- **Pop Art**: Bright primary colors with bold black/white outlines
+- **Vaporwave**: Soft pastel neons in lavender, cyan, peach, and pink
+- **Candy Shop**: Sweet bubblegum pink, mint green, and lemon yellow
 
 ## 🔧 Dependencies
 
-### Required
-```
-pygame>=2.1.0
-numpy>=1.21.0
-```
-
-### Optional (for audio reactivity)
-```
-pyaudio>=0.2.11
-scipy>=1.7.0
-```
-
 Install with:
 ```bash
-pip install pygame numpy
-# For audio features:
-pip install pyaudio scipy
+pip install -r requirements.txt
 ```
 
-## 🎵 Audio-Reactive Features
-
-When audio reactivity is enabled, the system:
-- Captures real-time microphone input
-- Performs FFT analysis to separate frequency bands
-- Maps audio characteristics to visual parameters
-- Detects beats for synchronized flash effects
-- Smooths audio data to prevent jarring transitions
-
-**Note**: Audio features require additional dependencies and microphone permissions.
 
 ## 🧪 Testing
 
@@ -281,7 +226,6 @@ python -m pytest distorsion_movement/tests/test_deformed_grid.py -v # Grid funct
 # - Grid generation and management
 # - Color schemes and animations
 # - Distortion algorithms
-# - Audio analysis components
 # - Integration testing
 ```
 
@@ -289,49 +233,17 @@ python -m pytest distorsion_movement/tests/test_deformed_grid.py -v # Grid funct
 
 The project has an extensive roadmap for future enhancements (see `TODO.md`):
 
-### Phase 1 (High Priority)
-- Mouse interaction (attraction/repulsion effects)
-- ✅ **COMPLETED**: Multiple shape types (circles, triangles, hexagons, stars, etc.)
-- Motion blur and glow effects
-- GIF/MP4 export capabilities
-- Preset scene system
-- Shape morphing and transformation animations
-
-### Phase 2 (Advanced Features)
-- Particle systems and trailing effects
-- GPU acceleration for performance
-- Web version using WebGL
-- VR/AR support for immersive experiences
-- Neural network integration for AI-generated patterns
-
-### Phase 3 (Experimental)
-- Real-time data visualization integration
-- Collaborative multi-user experiences
-- Biometric integration (heart rate, brainwaves)
-- Advanced physics simulation
-
 ## 🏆 Key Features
 
 ✅ **Real-time Performance**: 60fps rendering with thousands of shapes  
-✅ **Multiple Shape Types**: 7 geometric shapes (squares, circles, triangles, hexagons, pentagons, stars, diamonds)  
+✅ **Multiple Shape Types**: 8 geometric shapes (squares, circles, triangles, hexagons, pentagons, stars, diamonds, Koch snowflakes)  
 ✅ **Flexible Shape Modes**: Single shape or mixed shape grids  
 ✅ **Modular Architecture**: Clean separation of concerns, easily extensible  
-✅ **Audio Reactivity**: Professional-grade music visualization  
 ✅ **Interactive Controls**: Live parameter adjustment and shape cycling  
-✅ **Rich Visual Combinations**: 7 shapes × 7 distortions × 10 colors = 490 combinations  
+✅ **Rich Visual Combinations**: 8 shapes × 20 distortions × 20 colors = 3,200 combinations  
 ✅ **Cross-platform**: Works on Windows, macOS, Linux  
 ✅ **Comprehensive Testing**: Full unit test coverage  
-✅ **Graceful Degradation**: Works without audio libraries  
-✅ **Fullscreen Support**: Immersive viewing experience  
-
-## 🎨 Use Cases
-
-- **Live Music Visualization**: DJ performances, concerts, parties
-- **Digital Art Creation**: Generative art projects, installations
-- **Meditation/Relaxation**: Calming visual experiences
-- **Educational**: Mathematics and programming demonstrations
-- **Screensaver**: Beautiful ambient desktop backgrounds
-- **Content Creation**: Background visuals for videos, streams
+✅ **Fullscreen Support**: Immersive viewing experience
 
 ## 🤝 Contributing
 
@@ -339,10 +251,9 @@ The project is designed for easy extension:
 - Add new distortion algorithms in `distortions.py`
 - Create new shape types in `shapes.py`
 - Create new color schemes in `colors.py`
-- Enhance audio analysis in `audio_analyzer.py`
 - Build new demo configurations in `demos.py`
 - Extend shape interactions and morphing capabilities
 
 ---
 
-**Distorsion Movement** transforms mathematical concepts into living, breathing art that responds to sound and user interaction. With support for multiple geometric shapes, flexible rendering modes, and comprehensive interactive controls, it's both a technical showcase of real-time graphics programming and a creative tool for generating endless visual experiences.
+**Distorsion Movement** transforms mathematical concepts into living, breathing art that responds to user interaction. With support for multiple geometric shapes, flexible rendering modes, and comprehensive interactive controls, it's both a technical showcase of real-time graphics programming and a creative tool for generating endless visual experiences.

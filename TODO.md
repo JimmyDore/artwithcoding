@@ -3,18 +3,11 @@
 - [X] It seems I cannot go back to monochrome
 - [X] Fix or remove useless tests
 - [X] Fix the cell size => Should also resize the grid
-
-- Distorsions improvements : 
-  - [X] Fix the lens distortion 
-      => Always the same size of lens based on the cell size
-      => Solution : the size of the lens should be based on the cell/grid size
-  - [ ] Fix the kaleidoscope twist => It's not working well in full screen
-
-- Shapes improvements : 
-  - [ ] Koch snowflake => Looks awsome but very laggy
-
-- Colors improvements : 
-  - [ ] Aurora borealis could maybe be improved, more red
+- [X] Distorsion improvement : Fix the lens distortion 
+- [ ] Full screen buggy, grid not big enough and loading scenes does not work well
+- [ ] Distorsion improvement :Fix the kaleidoscope twist => It's not working well in full screen
+- [ ] Shapes improvements : Koch snowflake => Looks awsome but very laggy
+- [ ] Colors improvements : Aurora borealis could maybe be improved, more red
 
 ## Short term roadmap
 
@@ -27,18 +20,18 @@
 - [X] Add new distortion types (swirl, ripple, flow)
 - [X] Add options to play with the cell size
 - [X] Add the name of the distortion, the intensity, and the number of cells on the screen
-- [X] Add an option to export the parameters of the current scene (just export the params.json file) and find a way to load it automatically when the app is launched. Maybe reuse the save image feature, and save a json file with the parameters. Maybe add an option to iterate through all saved scenes.
+- [X] Add an option to export the parameters of the current scene (just export the params.json file) and find a way to load it automatically when the app is launched. Maybe reuse the save image feature, and save a json file with the parameters. Maybe add an option to iterate through all saved scenes
 - [X] Get rid of the audio features, it's not working well
 - [X] Clean up useless stuff in TODO.md
 
 - [X] Add a keyboard shortcut to do previous distorsion/shape/color scheme
 - [X] The menu is too big, on one column, maybe 2 columns now ? 
-- [ ] Clean up useless stuff in README.md (audio etc...)
+- [X] Clean up useless stuff in README.md (audio etc...)
 
 - Add in README: 
-  - [ ] the new distorsions (from pulse, pulse not included)
-  - [ ] the new shapes (from koch snowflake)
-  - [ ] the new colors (from analogous)
+  - [X] the new distorsions (from pulse, pulse not included)
+  - [X] the new shapes (from koch snowflake)
+  - [X] the new colors (from analogous)
   - [ ] the size guide (and mention it in the number of combinations possible)
   - [ ] the status display
   - [ ] how a distorsion function works, what parameters and what it basically does (compute next position and rotations based on ...)
@@ -46,9 +39,11 @@
   - [ ] the saved/load scenes feature
   - [ ] the previous/next scene feature
 
+- [ ] Refactor the shapes, colors, and distorsions to be more modular and easier to add new ones. (one file for each type of distorsion, one file for each shape, one file for each color scheme)
+- [ ] Add a guide in the README.md to explain how to add new shapes, colors, and distorsions + update the modules explanations
+
 - [ ] Find cool combinations to showcase and save them
 - [ ] Save as mp4 feature
-- [ ] Refactor the shapes, colors, and distorsions to be more modular and easier to add new ones. (one file for each type of distorsion, one file for each shape, one file for each color scheme)
 
 - [ ] Add new shape types
 - [ ] Add new color schemes (inspire from pastel color in archive)

@@ -88,96 +88,9 @@ def fullscreen_demo():
     print("🎨 Les nouvelles formes réagissent aux couleurs et distorsions!")
     grid.run_interactive()
 
-
-def star_demo():
-    """Démonstration avec seulement des étoiles - Magique! ⭐"""
-    grid = create_deformed_grid(
-        dimension=64,
-        cell_size=18,
-        distortion_strength=0.7,
-        distortion_fn="circular",
-        color_scheme="fire",
-        color_animation=True,
-        fullscreen=False,
-        shape_type="star",        # SEULEMENT des étoiles
-        mixed_shapes=False        # Forme unique
-    )
-    print("\n⭐ DÉMO ÉTOILES SEULEMENT!")
-    print("🌟 Toutes les cellules sont des étoiles dorées")
-    print("🎮 Utilisez 'H' pour changer vers d'autres formes")
-    grid.run_interactive()
-
-
-def hexagon_demo():
-    """Démonstration avec seulement des hexagones - Géométrique! 🔶"""
-    grid = create_deformed_grid(
-        dimension=60,
-        cell_size=16,
-        distortion_strength=0.5,
-        distortion_fn="perlin",
-        color_scheme="ocean",
-        color_animation=True,
-        fullscreen=False,
-        shape_type="hexagon",     # SEULEMENT des hexagones
-        mixed_shapes=False        # Forme unique
-    )
-    print("\n🔶 DÉMO HEXAGONES SEULEMENT!")
-    print("🏯 Pattern géométrique uniforme avec hexagones")
-    print("🎮 Utilisez 'H' pour explorer d'autres formes")
-    grid.run_interactive()
-
-
-def triangle_demo():
-    """Démonstration avec seulement des triangles - Tribal! 🔺"""
-    grid = create_deformed_grid(
-        dimension=70,
-        cell_size=14,
-        distortion_strength=0.9,
-        distortion_fn="random",
-        color_scheme="complementary",
-        color_animation=True,
-        fullscreen=False,
-        shape_type="triangle",    # SEULEMENT des triangles
-        mixed_shapes=False        # Forme unique
-    )
-    print("\n🔺 DÉMO TRIANGLES SEULEMENT!")
-    print("⚡ Style tribal avec triangles dynamiques")
-    print("🎮 Utilisez 'H' pour tester autres formes")
-    grid.run_interactive()
-
-
-def shapes_showcase_demo():
-    """Démonstration spéciale pour mettre en valeur toutes les formes disponibles 🎭"""
-    grid = create_deformed_grid(
-        dimension=64,
-        cell_size=18,
-        distortion_strength=0.6,
-        distortion_fn="circular",
-        color_scheme="rainbow",
-        color_animation=True,
-        fullscreen=False,
-        shape_type="star",
-        mixed_shapes=True
-    )
-    print("\n🎭 VITRINE DES FORMES!")
-    print("🔄 Cette démo affiche toutes les formes en mode mixte")
-    print("🎨 Essayez 'H' pour changer de forme principale")
-    print("🎲 'Shift+H' pour basculer en mode forme unique")
-    print("🌈 Toutes les formes supportent couleurs et animations!")
-    grid.run_interactive()
-
 if __name__ == "__main__":
     # Choisir la démo à lancer
     print("🎨 Démonstrations disponibles:")
     print("1. quick_demo() - Démonstration rapide")
     print("2. fullscreen_demo() - Cercles en plein écran")
-    print("3. star_demo() - Seulement des étoiles ⭐")
-    print("4. hexagon_demo() - Seulement des hexagones 🔶")
-    print("5. triangle_demo() - Seulement des triangles 🔺")
-    print("6. shapes_showcase_demo() - Vitrine formes mixtes")
-    print("\n🔷 FORMES UNIQUES vs MIXTES:")
-    print("   ✨ Démos 2-5: UNE SEULE forme (mixed_shapes=False)")
-    print("   🎲 Démo 6: FORMES MIXTES (mixed_shapes=True)")
-    print("   🎮 Dans toutes les démos: 'H' change la forme, 'Shift+H' bascule le mode")
-    print("\nLancement de la démonstration étoiles...")
     fullscreen_demo()
