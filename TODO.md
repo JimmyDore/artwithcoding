@@ -38,11 +38,13 @@
   - [X] the previous/next scene feature
   - [X] how a distorsion function works, what parameters and what it basically does (compute next position and rotations based on ...)
 
+- [X] Find cool combinations to showcase and save them
+- [ ] Youtube video + Update README.md with the video link
 
 - [ ] Refactor the shapes, colors, and distorsions to be more modular and easier to add new ones. (one file for each type of distorsion, one file for each shape, one file for each color scheme)
 - [ ] Add a guide in the README.md to explain how to add new shapes, colors, and distorsions + update the modules explanations
+- [ ] Prepare LinkedIn post to share the repo and the video
 
-- [ ] Find cool combinations to showcase and save them
 - [ ] Save as mp4 feature
 
 - [ ] Add new shape types

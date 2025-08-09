@@ -7,27 +7,27 @@ base_dimension: 32
 canvas_size:
 - 740
 - 740
-cell_size: 24
+cell_size: 18
 color_animation: true
-color_scheme: desert
-dimension: 24
-distortion_fn: checkerboard_diagonal
-distortion_strength: 1.0
+color_scheme: complementary
+dimension: 32
+distortion_fn: tornado
+distortion_strength: 1
 grid_density_mode: true
 is_fullscreen: false
 mixed_shapes: false
 offset_x: 82
 offset_y: 82
-saved_at: '2025-08-09T12:41:41.283030'
-saved_filename: deformed_grid_checkerboard_diagonal_21112.yaml
-shape_type: square
+saved_at: '2025-08-09T13:51:40.776699'
+saved_filename: deformed_grid_tornado_46839.yaml
+shape_type: diamond
 show_help: false
 show_status: false
 square_color:
 - 255
 - 255
 - 255
-time: 211.1200000000342
+time: 468.39999999986395
 windowed_size:
 - 740
 - 740

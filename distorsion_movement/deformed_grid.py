@@ -959,7 +959,7 @@ class DeformedGrid:
             return []
         
         yaml_files = glob.glob(os.path.join("saved_params", "*.yaml"))
-        yaml_files.sort(key=os.path.getmtime, reverse=True)  # Sort by modification time, newest first
+        random.shuffle(yaml_files)
         return yaml_files
     
     def initialize_scene_iteration(self):
