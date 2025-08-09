@@ -338,6 +338,25 @@ class ColorGenerator:
 
             return (r, g, b)
 
+        elif color_scheme == "pop_art":
+            # Pop Art - bright primaries with black/white outlines
+            primaries = [
+                (255, 0, 0),    # Red
+                (0, 0, 255),    # Blue
+                (255, 255, 0),  # Yellow
+                (0, 255, 0)     # Green
+            ]
+
+            row = index // dimension
+            col = index % dimension
+
+            # Every Nth cell becomes black/white for a bold outline effect
+            if row % 5 == 0 or col % 5 == 0:
+                return (0, 0, 0) if (row + col) % 2 == 0 else (255, 255, 255)
+
+            # Otherwise, cycle through bright primaries
+            return primaries[(row + col) % len(primaries)]
+    
         # Par défaut, retourner blanc
         return (255, 255, 255)
 

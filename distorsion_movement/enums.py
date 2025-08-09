@@ -52,6 +52,7 @@ class ColorScheme(Enum):
     METALLICS = "metallics"
     REGGAE = "reggae"
     SUNSET = "sunset"
+    POP_ART = "pop_art"
 
 
 class ShapeType(Enum):

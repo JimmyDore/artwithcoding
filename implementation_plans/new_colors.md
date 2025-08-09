@@ -22,7 +22,7 @@
 
 ## Playful & abstract
 
-- Pop art → bright primaries with sharp black/white outlines.
+- ✅ Pop art → bright primaries with sharp black/white outlines.
 - Vaporwave → lavender, cyan, peach, pink.
 - Candy shop → bubblegum pink, mint green, lemon yellow.
 
