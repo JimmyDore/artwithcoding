@@ -310,7 +310,7 @@ class DeformedGrid:
                 ("D", "Afficher/masquer les infos de statut"),
             ]),
             ("Distorsion & Animation", [
-                ("ESPACE", "Changer le type de distorsion"),
+                ("ESPACE / Shift+ESPACE", "Distorsion suivante / précédente"),
                 ("+/-", "Ajuster l'intensité de distorsion"),
                 ("R", "Régénérer les paramètres aléatoires"),
             ]),
@@ -318,20 +318,19 @@ class DeformedGrid:
                 ("T puis +/-", "Ajuster la densité de grille (nombre de cellules)"),
             ]),
             ("Couleurs", [
-                ("C", "Changer le schéma de couleurs"),
+                ("C / Shift+C", "Couleur suivante / précédente"),
                 ("A", "Activer/désactiver l'animation des couleurs"),
             ]),
             ("Formes", [
-                ("H", "Changer le type de forme"),
-                ("Shift+H", "Basculer mode formes mixtes"),
+                ("H / Shift+H", "Forme suivante / précédente"),
+                ("Ctrl+H", "Basculer mode formes mixtes"),
             ]),
             ("Sauvegarde", [
                 ("S", "Sauvegarder l'image actuelle (+ paramètres YAML)"),
                 ("G", "Démarrer/arrêter l'enregistrement GIF"),
             ]),
             ("Scènes Sauvegardées", [
-                ("L", "Charger la scène suivante"),
-                ("K", "Charger la scène précédente"),
+                ("L / Shift+L", "Scène suivante / précédente"),
                 ("P", "Actualiser la liste des scènes"),
             ])
         ]
@@ -570,20 +569,21 @@ class DeformedGrid:
         
         print("Contrôles:")
         print("- ESC: Quitter")
-        print("- I ou TAB: Afficher/masquer l'aide")
+        print("- I ou TAB: Afficher/masquer l'aide complète")
         print("- D: Afficher/masquer les infos de statut")
         print("- F: Basculer plein écran/fenêtré")
-        print("- SPACE: Changer le type de distorsion")
-        print("- C: Changer le schéma de couleurs")
-
+        print("- SPACE/Shift+SPACE: Distorsion suivante/précédente")
+        print("- C/Shift+C: Couleur suivante/précédente")
+        print("- H/Shift+H: Forme suivante/précédente")
+        print("- Ctrl+H: Basculer mode formes mixtes")
         print("- A: Activer/désactiver l'animation des couleurs")
-        print("- H: Changer le type de forme")
-        print("- Shift+H: Basculer mode formes mixtes")
         print("- +/-: Ajuster l'intensité de distorsion")
         print("- T puis +/-: Ajuster la densité de grille (nombre de cellules)")
         print("- R: Régénérer les paramètres aléatoires")
         print("- S: Sauvegarder l'image")
         print("- G: Démarrer/arrêter l'enregistrement GIF")
+        print("- L/Shift+L: Scène suivante/précédente")
+        print("💡 Utilisez Shift pour naviguer dans le sens inverse!")
         
         distortion_types = [t.value for t in DistortionType]
         current_distortion_index = 0
@@ -619,16 +619,28 @@ class DeformedGrid:
                         status = "affiché" if self.show_status else "masqué"
                         print(f"Affichage du statut: {status}")
                     elif event.key == pygame.K_SPACE:
-                        # Changer le type de distorsion
-                        current_distortion_index = (current_distortion_index + 1) % len(distortion_types)
+                        # Navigation dans les types de distorsion
+                        if pygame.key.get_pressed()[pygame.K_LSHIFT] or pygame.key.get_pressed()[pygame.K_RSHIFT]:
+                            # Shift+SPACE: type de distorsion précédent
+                            current_distortion_index = (current_distortion_index - 1) % len(distortion_types)
+                        else:
+                            # SPACE: type de distorsion suivant
+                            current_distortion_index = (current_distortion_index + 1) % len(distortion_types)
                         self.distortion_fn = distortion_types[current_distortion_index]
-                        print(f"Distorsion: {self.distortion_fn}")
+                        direction = "←" if pygame.key.get_pressed()[pygame.K_LSHIFT] or pygame.key.get_pressed()[pygame.K_RSHIFT] else "→"
+                        print(f"Distorsion {direction}: {self.distortion_fn}")
                     elif event.key == pygame.K_c:
-                        # Changer le schéma de couleurs
-                        current_color_index = (current_color_index + 1) % len(color_schemes)
+                        # Navigation dans les schémas de couleurs
+                        if pygame.key.get_pressed()[pygame.K_LSHIFT] or pygame.key.get_pressed()[pygame.K_RSHIFT]:
+                            # Shift+C: schéma de couleurs précédent
+                            current_color_index = (current_color_index - 1) % len(color_schemes)
+                        else:
+                            # C: schéma de couleurs suivant
+                            current_color_index = (current_color_index + 1) % len(color_schemes)
                         self.color_scheme = color_schemes[current_color_index]
                         self._generate_base_colors()  # Régénérer les couleurs
-                        print(f"Schéma de couleurs: {self.color_scheme}")
+                        direction = "←" if pygame.key.get_pressed()[pygame.K_LSHIFT] or pygame.key.get_pressed()[pygame.K_RSHIFT] else "→"
+                        print(f"Couleurs {direction}: {self.color_scheme}")
                     elif event.key == pygame.K_a:
                         # Activer/désactiver l'animation des couleurs
                         self.color_animation = not self.color_animation
@@ -669,20 +681,28 @@ class DeformedGrid:
                         # Sauvegarder
                         self.save_image(f"deformed_grid_{self.distortion_fn}_{int(self.time*100)}.png")
                         print("Image sauvegardée")
-                    elif event.key == pygame.K_h and (pygame.key.get_pressed()[pygame.K_LSHIFT] or pygame.key.get_pressed()[pygame.K_RSHIFT]):
-                        # Basculer le mode formes mixtes (Shift+H) - doit être testé en PREMIER
+                    elif event.key == pygame.K_h and (pygame.key.get_pressed()[pygame.K_LCTRL] or pygame.key.get_pressed()[pygame.K_RCTRL]):
+                        # Basculer le mode formes mixtes (Ctrl+H)
                         self.mixed_shapes = not self.mixed_shapes
                         self._generate_shape_types()  # Régénérer les formes
                         mode = "formes mixtes" if self.mixed_shapes else "forme unique"
                         print(f"Mode: {mode} ({self.shape_type})")
                     elif event.key == pygame.K_h:
-                        # Changer le type de forme (H seul)
+                        # Navigation dans les types de formes
                         shape_types = [s.value for s in ShapeType]
                         current_shape_index = shape_types.index(self.shape_type) if self.shape_type in shape_types else 0
-                        current_shape_index = (current_shape_index + 1) % len(shape_types)
+                        
+                        if pygame.key.get_pressed()[pygame.K_LSHIFT] or pygame.key.get_pressed()[pygame.K_RSHIFT]:
+                            # Shift+H: type de forme précédent
+                            current_shape_index = (current_shape_index - 1) % len(shape_types)
+                        else:
+                            # H: type de forme suivant
+                            current_shape_index = (current_shape_index + 1) % len(shape_types)
+                        
                         self.shape_type = shape_types[current_shape_index]
                         self._generate_shape_types()  # Régénérer les formes
-                        print(f"Forme: {self.shape_type}")
+                        direction = "←" if pygame.key.get_pressed()[pygame.K_LSHIFT] or pygame.key.get_pressed()[pygame.K_RSHIFT] else "→"
+                        print(f"Forme {direction}: {self.shape_type}")
                     elif event.key == pygame.K_f:
                         # Basculer plein écran
                         self.toggle_fullscreen()
@@ -695,11 +715,13 @@ class DeformedGrid:
                         else:
                             self.start_gif_recording()
                     elif event.key == pygame.K_l:
-                        # Charger la scène suivante
-                        self.load_next_scene()
-                    elif event.key == pygame.K_k:
-                        # Charger la scène précédente
-                        self.load_previous_scene()
+                        # Navigation dans les scènes sauvegardées
+                        if pygame.key.get_pressed()[pygame.K_LSHIFT] or pygame.key.get_pressed()[pygame.K_RSHIFT]:
+                            # Shift+L: scène précédente
+                            self.load_previous_scene()
+                        else:
+                            # L: scène suivante
+                            self.load_next_scene()
                     elif event.key == pygame.K_p:
                         # Actualiser la liste des scènes sauvegardées
                         self.refresh_saved_scenes()

@@ -31,7 +31,7 @@
 - [X] Get rid of the audio features, it's not working well
 - [X] Clean up useless stuff in TODO.md
 
-- [ ] Add a keyboard shortcut to do previous distorsion/shape/color scheme
+- [X] Add a keyboard shortcut to do previous distorsion/shape/color scheme
 - [ ] The menu is too big, on one column, maybe 2 columns now ? 
 - [ ] Clean up useless stuff in README.md (audio etc...)
 
