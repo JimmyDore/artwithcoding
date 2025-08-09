@@ -49,6 +49,7 @@ class ColorScheme(Enum):
     INFRARED_THERMAL = "infrared_thermal"
     DUOTONE_ACCENT = "duotone_accent"
     DESERT = "desert"
+    METALLICS = "metallics"
 
 
 class ShapeType(Enum):

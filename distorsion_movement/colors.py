@@ -260,6 +260,36 @@ class ColorGenerator:
                 # Outer ring: deep brown
                 return brown
 
+        elif color_scheme == "metallics":
+            # Metallic gradients - gold, silver, bronze
+            gold   = (212, 175, 55)
+            silver = (192, 192, 192)
+            bronze = (205, 127, 50)
+
+            # Use position to blend smoothly between metals
+            t = (x_norm + y_norm) / 2.0  # 0..1 diagonal gradient
+
+            if t < 0.33:
+                # Blend from gold to silver
+                blend = t / 0.33
+                r = int(gold[0] + (silver[0] - gold[0]) * blend)
+                g = int(gold[1] + (silver[1] - gold[1]) * blend)
+                b = int(gold[2] + (silver[2] - gold[2]) * blend)
+            elif t < 0.66:
+                # Blend from silver to bronze
+                blend = (t - 0.33) / 0.33
+                r = int(silver[0] + (bronze[0] - silver[0]) * blend)
+                g = int(silver[1] + (bronze[1] - silver[1]) * blend)
+                b = int(silver[2] + (bronze[2] - silver[2]) * blend)
+            else:
+                # Blend from bronze back to gold
+                blend = (t - 0.66) / 0.34
+                r = int(bronze[0] + (gold[0] - bronze[0]) * blend)
+                g = int(bronze[1] + (gold[1] - bronze[1]) * blend)
+                b = int(bronze[2] + (gold[2] - bronze[2]) * blend)
+
+            return (r, g, b)
+
 
         # Par défaut, retourner blanc
         return (255, 255, 255)

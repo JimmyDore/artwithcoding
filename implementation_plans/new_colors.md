@@ -12,13 +12,13 @@
 - ✅ Cyberpunk → neon magenta, cyan, and deep purple. 
 - Sunset → warm yellow → orange → pink → purple gradient.
 - ✅ Aurora Borealis → teal → green → purple with soft blending.
-- Desert → sandy beige, warm oranges, muted browns.
+- ✅ Desert → sandy beige, warm oranges, muted browns.
 
 ## Texture & subtle contrast
 
 - Earthy tones → muted greens, browns, ochres.
 - Muted pastel rainbow → same hue spread as rainbow, but low saturation.
-- Metallics → gold, silver, bronze gradients.
+- ✅ Metallics → gold, silver, bronze gradients.
 
 ## Playful & abstract
 
