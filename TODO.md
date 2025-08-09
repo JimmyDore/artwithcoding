@@ -39,10 +39,11 @@
   - [X] how a distorsion function works, what parameters and what it basically does (compute next position and rotations based on ...)
 
 - [X] Find cool combinations to showcase and save them
-- [ ] Youtube video + Update README.md with the video link
+- [X] Youtube video + Update README.md with the video link
 
 - [ ] Refactor the shapes, colors, and distorsions to be more modular and easier to add new ones. (one file for each type of distorsion, one file for each shape, one file for each color scheme)
 - [ ] Add a guide in the README.md to explain how to add new shapes, colors, and distorsions + update the modules explanations
+- [ ] Filter out ugly combinations & redo better youtube video demoing different shapes & do one demoing all the features in the menu
 - [ ] Prepare LinkedIn post to share the repo and the video
 
 - [ ] Save as mp4 feature

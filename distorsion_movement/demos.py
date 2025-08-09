@@ -40,7 +40,8 @@ def create_deformed_grid(dimension: int = 64,
         # Pour le plein écran, utiliser une taille de fenêtre temporaire
         canvas_size = (900, 900)
     else:
-        canvas_size = (dimension * cell_size + 100, dimension * cell_size + 100)
+        grow_factor = 1.3
+        canvas_size = (dimension * cell_size * grow_factor, dimension * cell_size * grow_factor)
     
     grid = DeformedGrid(
         dimension=dimension,

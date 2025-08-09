@@ -2,7 +2,7 @@
 
 **Distorsion Movement** is a real-time generative art platform that creates mesmerizing visual experiences through geometrically deformed grids. The system generates dynamic, interactive artwork by applying mathematical distortions to regular grids of multiple geometric shapes (squares, circles, triangles, hexagons, pentagons, stars, diamonds) with variable grid densities and comprehensive scene management capabilities
 
-[![Watch the demo on YouTube](https://img.youtube.com/vi/GWTRef1pFJo/0.jpg)](https://www.youtube.com/watch?v=GWTRef1pFJo)
+[![Watch the demo on YouTube](https://img.youtube.com/vi/qlVvBPMil0Q/0.jpg)](https://www.youtube.com/watch?v=qlVvBPMil0Q)
 
 ## 🎯 Project Overview
 
