@@ -62,7 +62,6 @@ def pytest_configure(config):
     """Configure custom pytest markers."""
     config.addinivalue_line("markers", "unit: Unit tests")
     config.addinivalue_line("markers", "integration: Integration tests")
-    config.addinivalue_line("markers", "audio: Tests requiring audio hardware")
     config.addinivalue_line("markers", "slow: Slow tests that take more than a few seconds")
 
 
@@ -72,15 +71,11 @@ def pytest_collection_modifyitems(config, items):
         # Mark integration tests
         if "test_integration" in item.nodeid:
             item.add_marker(pytest.mark.integration)
-        
-        # Mark audio tests
-        if "audio" in item.name.lower() or "test_audio" in item.nodeid:
-            item.add_marker(pytest.mark.audio)
-        
+                
         # Mark slow tests
         if "large" in item.name.lower() or "performance" in item.name.lower():
             item.add_marker(pytest.mark.slow)
         
         # Mark remaining tests as unit tests if not already marked
-        if not any(mark.name in ['integration', 'audio', 'slow'] for mark in item.iter_markers()):
+        if not any(mark.name in ['integration', 'slow'] for mark in item.iter_markers()):
             item.add_marker(pytest.mark.unit)

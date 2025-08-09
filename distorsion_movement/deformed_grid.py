@@ -15,7 +15,6 @@ import threading
 from typing import Tuple, List
 
 from distorsion_movement.enums import DistortionType, ColorScheme, ShapeType
-from distorsion_movement.audio_analyzer import AudioAnalyzer
 from distorsion_movement.colors import ColorGenerator
 from distorsion_movement.distortions import DistortionEngine
 from distorsion_movement.shapes import get_shape_renderer_function
@@ -44,7 +43,6 @@ class DeformedGrid:
                  square_color: Tuple[int, int, int] = (255, 255, 255),
                  color_scheme: str = "monochrome",
                  color_animation: bool = False,
-                 audio_reactive: bool = False,
                  shape_type: str = "square",
                  mixed_shapes: bool = False):
         """
@@ -60,7 +58,6 @@ class DeformedGrid:
             square_color: Couleur des carrés RGB (utilisée pour monochrome)
             color_scheme: Schéma de couleurs ("monochrome", "gradient", "rainbow", etc.)
             color_animation: Si True, les couleurs changent dans le temps
-            audio_reactive: Si True, réagit à l'audio en temps réel
             shape_type: Type de forme à dessiner ("square", "circle", "triangle", etc.)
             mixed_shapes: Si True, utilise différentes formes dans la grille
         """
@@ -73,12 +70,9 @@ class DeformedGrid:
         self.square_color = square_color
         self.color_scheme = color_scheme
         self.color_animation = color_animation
-        self.audio_reactive = audio_reactive
         self.shape_type = shape_type
         self.mixed_shapes = mixed_shapes
         
-        # Audio analyzer
-        self.audio_analyzer = AudioAnalyzer() if audio_reactive else None
         self.base_distortion_strength = distortion_strength  # Sauvegarde de l'intensité de base
         
         # Calcul automatique du décalage pour centrer la grille
@@ -148,11 +142,7 @@ class DeformedGrid:
         
         # Génération des types de formes pour chaque cellule
         self._generate_shape_types()
-        
-        # Démarrage de l'analyse audio si activée
-        if self.audio_reactive and self.audio_analyzer:
-            self.audio_analyzer.start_audio_capture()
-    
+            
     def _generate_base_positions(self):
         """Génère les positions de base de la grille régulière"""
         self.base_positions = []
@@ -335,8 +325,7 @@ class DeformedGrid:
                 ("H", "Changer le type de forme"),
                 ("Shift+H", "Basculer mode formes mixtes"),
             ]),
-            ("Audio & Sauvegarde", [
-                ("M", "Activer/désactiver la réactivité audio"),
+            ("Sauvegarde", [
                 ("S", "Sauvegarder l'image actuelle (+ paramètres YAML)"),
                 ("G", "Démarrer/arrêter l'enregistrement GIF"),
             ]),
@@ -404,9 +393,7 @@ class DeformedGrid:
         
         # Ajouter des informations supplémentaires si pertinentes
         if self.color_animation:
-            status_lines.append("Animation: ON")
-        if self.audio_reactive:
-            status_lines.append("Audio: ON")
+            status_lines.append("Color animation: ON")
         if self.mixed_shapes:
             status_lines.append("Formes: Mixtes")
         else:
@@ -461,8 +448,7 @@ class DeformedGrid:
             # Obtenir la couleur de base et appliquer l'animation si nécessaire
             base_color = self.base_colors[i]
             final_color = ColorGenerator.get_animated_color(
-                base_color, i, self.time, self.color_animation, 
-                self.audio_reactive, self.audio_analyzer
+                base_color, i, self.time, self.color_animation
             )
             
             # Obtenir le type de forme pour cette cellule
@@ -482,18 +468,6 @@ class DeformedGrid:
         """Met à jour l'animation"""
         self.time += self.animation_speed
         
-        # Mise à jour de l'intensité de distorsion basée sur l'audio
-        if self.audio_reactive and self.audio_analyzer:
-            audio_features = self.audio_analyzer.get_audio_features()
-            
-            # Les basses fréquences contrôlent l'intensité de distorsion
-            bass_boost = min(audio_features['bass_level'] * 0.8, 1.0)  # Limiter à 1.0
-            self.distortion_strength = min(self.base_distortion_strength + bass_boost, 2.0)  # Max 2.0
-            
-            # Le volume global contrôle la vitesse d'animation
-            volume_speed = 1.0 + min(audio_features['overall_volume'] * 2.0, 3.0)  # Max 4x speed
-            self.animation_speed = max(0.005, min(0.02 * volume_speed, 0.1))  # Entre 0.005 et 0.1
-    
     def start_gif_recording(self):
         """Démarre l'enregistrement GIF"""
         if self.is_recording:
@@ -603,7 +577,6 @@ class DeformedGrid:
         print("- C: Changer le schéma de couleurs")
 
         print("- A: Activer/désactiver l'animation des couleurs")
-        print("- M: Activer/désactiver la réactivité audio")
         print("- H: Changer le type de forme")
         print("- Shift+H: Basculer mode formes mixtes")
         print("- +/-: Ajuster l'intensité de distorsion")
@@ -662,22 +635,6 @@ class DeformedGrid:
                         status = "activée" if self.color_animation else "désactivée"
                         print(f"Animation des couleurs: {status}")
 
-                    elif event.key == pygame.K_m:
-                        # Activer/désactiver la réactivité audio
-                        from distorsion_movement.audio_analyzer import AUDIO_AVAILABLE
-                        if not AUDIO_AVAILABLE:
-                            print("Audio non disponible - installez pyaudio et scipy")
-                        else:
-                            self.audio_reactive = not self.audio_reactive
-                            if self.audio_reactive:
-                                if not self.audio_analyzer:
-                                    self.audio_analyzer = AudioAnalyzer()
-                                self.audio_analyzer.start_audio_capture()
-                                print("🎵 Mode audio-réactif activé!")
-                            else:
-                                if self.audio_analyzer:
-                                    self.audio_analyzer.stop_audio_capture()
-                                print("🔇 Mode audio-réactif désactivé")
                     elif event.key == pygame.K_t:
                         # Basculer le mode d'ajustement de la densité de grille
                         self.grid_density_mode = not self.grid_density_mode
@@ -763,10 +720,6 @@ class DeformedGrid:
             import time
             time.sleep(2)
         
-        # Cleanup audio
-        if self.audio_analyzer:
-            self.audio_analyzer.stop_audio_capture()
-        
         pygame.quit()
     
     def toggle_fullscreen(self):
@@ -823,7 +776,6 @@ class DeformedGrid:
             "square_color": list(self.square_color),
             "color_scheme": self.color_scheme,
             "color_animation": self.color_animation,
-            "audio_reactive": self.audio_reactive,
             "shape_type": self.shape_type,
             "mixed_shapes": self.mixed_shapes,
             
@@ -878,7 +830,6 @@ class DeformedGrid:
             self.square_color = tuple(params.get("square_color", self.square_color))
             self.color_scheme = params.get("color_scheme", self.color_scheme)
             self.color_animation = params.get("color_animation", self.color_animation)
-            self.audio_reactive = params.get("audio_reactive", self.audio_reactive)
             self.shape_type = params.get("shape_type", self.shape_type)
             self.mixed_shapes = params.get("mixed_shapes", self.mixed_shapes)
             
@@ -894,7 +845,7 @@ class DeformedGrid:
             self.base_dimension = params.get("base_dimension", self.base_dimension)
             self.grid_density_mode = params.get("grid_density_mode", self.grid_density_mode)
             
-            # Update base distortion strength for audio reactivity
+            # Update base distortion strength
             self.base_distortion_strength = self.distortion_strength
             
             # Recalculate offsets to center the grid with new dimensions

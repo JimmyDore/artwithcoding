@@ -41,8 +41,6 @@ class TestDeformedGrid:
         assert grid.square_color == (255, 255, 255)
         assert grid.color_scheme == "monochrome"
         assert grid.color_animation is False
-        assert grid.audio_reactive is False
-        assert grid.audio_analyzer is None
         assert grid.time == 0.0
         assert grid.animation_speed == 0.02
         assert grid.is_fullscreen is False
@@ -59,7 +57,6 @@ class TestDeformedGrid:
             square_color=(255, 0, 0),
             color_scheme="rainbow",
             color_animation=True,
-            audio_reactive=False
         )
         
         assert grid.dimension == 32
@@ -71,20 +68,7 @@ class TestDeformedGrid:
         assert grid.square_color == (255, 0, 0)
         assert grid.color_scheme == "rainbow"
         assert grid.color_animation is True
-        assert grid.audio_reactive is False
-    
-    @patch('distorsion_movement.deformed_grid.AudioAnalyzer')
-    def test_init_with_audio_reactive(self, mock_audio_analyzer):
-        """Test DeformedGrid initialization with audio reactivity."""
-        mock_analyzer_instance = MagicMock()
-        mock_audio_analyzer.return_value = mock_analyzer_instance
-        
-        grid = DeformedGrid(audio_reactive=True)
-        
-        assert grid.audio_reactive is True
-        assert grid.audio_analyzer is not None
-        mock_analyzer_instance.start_audio_capture.assert_called_once()
-    
+
     def test_generate_base_positions(self):
         """Test generation of base grid positions."""
         grid = DeformedGrid(dimension=3, cell_size=10, canvas_size=(100, 100))

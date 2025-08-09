@@ -16,7 +16,6 @@ def create_deformed_grid(dimension: int = 64,
                         distortion_fn: str = "random",
                         color_scheme: str = "rainbow",
                         color_animation: bool = False,
-                        audio_reactive: bool = False,
                         fullscreen: bool = False,
                         shape_type: str = "square",
                         mixed_shapes: bool = False) -> DeformedGrid:
@@ -30,7 +29,6 @@ def create_deformed_grid(dimension: int = 64,
         distortion_fn: Type de distorsion ("random", "sine", "perlin", "circular")
         color_scheme: Schéma de couleurs ("monochrome", "gradient", "rainbow", etc.)
         color_animation: Si True, les couleurs sont animées
-        audio_reactive: Si True, réagit à l'audio en temps réel
         fullscreen: Si True, démarre directement en plein écran
         shape_type: Type de forme à utiliser ("square", "circle", "triangle", etc.)
         mixed_shapes: Si True, utilise différentes formes dans la grille
@@ -52,7 +50,6 @@ def create_deformed_grid(dimension: int = 64,
         distortion_fn=distortion_fn,
         color_scheme=color_scheme,
         color_animation=color_animation,
-        audio_reactive=audio_reactive,
         shape_type=shape_type,
         mixed_shapes=mixed_shapes
     )
@@ -169,28 +166,6 @@ def shapes_showcase_demo():
     print("🌈 Toutes les formes supportent couleurs et animations!")
     grid.run_interactive()
 
-
-def audio_reactive_demo():
-    """Démonstration avec réactivité audio - PARFAIT POUR LA MUSIQUE! 🎵"""
-    grid = create_deformed_grid(
-        dimension=64, 
-        cell_size=18, 
-        distortion_strength=1,  # Distorsion de base plus faible (l'audio l'augmente)
-        distortion_fn="sine",
-        color_scheme="neon", 
-        color_animation=True, 
-        audio_reactive=True,
-        fullscreen=True,
-        shape_type="hexagon",  # Commencer avec des hexagones
-        mixed_shapes=False     # Forme unique pour un effet cohérent
-    )
-    print("\n🎵 MODE AUDIO-RÉACTIF ACTIVÉ!")
-    print("🎧 Lancez votre musique préférée et regardez l'art danser!")
-    print("🔊 Plus la musique est forte, plus les effets sont intenses!")
-    print("🔷 Forme: hexagones (utilisez 'H' pour changer)")
-    grid.run_interactive()
-
-
 if __name__ == "__main__":
     # Choisir la démo à lancer
     print("🎨 Démonstrations disponibles:")
@@ -200,7 +175,6 @@ if __name__ == "__main__":
     print("4. hexagon_demo() - Seulement des hexagones 🔶")
     print("5. triangle_demo() - Seulement des triangles 🔺")
     print("6. shapes_showcase_demo() - Vitrine formes mixtes")
-    print("7. audio_reactive_demo() - Démonstration audio-réactive")
     print("\n🔷 FORMES UNIQUES vs MIXTES:")
     print("   ✨ Démos 2-5: UNE SEULE forme (mixed_shapes=False)")
     print("   🎲 Démo 6: FORMES MIXTES (mixed_shapes=True)")

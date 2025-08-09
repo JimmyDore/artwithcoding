@@ -6,7 +6,7 @@ import pytest
 import pygame
 from unittest.mock import patch, MagicMock
 from distorsion_movement import (
-    DeformedGrid, DistortionType, ColorScheme, AudioAnalyzer,
+    DeformedGrid, DistortionType, ColorScheme,
     ColorGenerator, DistortionEngine, create_deformed_grid
 )
 from distorsion_movement.demos import quick_demo
@@ -36,7 +36,6 @@ class TestPackageIntegration:
         assert DeformedGrid is not None
         assert DistortionType is not None
         assert ColorScheme is not None
-        assert AudioAnalyzer is not None
         assert ColorGenerator is not None
         assert DistortionEngine is not None
         assert create_deformed_grid is not None
@@ -112,34 +111,6 @@ class TestPackageIntegration:
         # Should have matching number of positions and colors
         assert len(distorted_positions) == len(colors)
         assert len(distorted_positions) == 3
-    
-    @patch('distorsion_movement.deformed_grid.AudioAnalyzer')
-    def test_audio_reactive_integration(self, mock_audio_analyzer):
-        """Test audio-reactive functionality integration."""
-        mock_analyzer = MagicMock()
-        mock_analyzer.get_audio_features.return_value = {
-            'bass_level': 0.8,
-            'mid_level': 0.5,
-            'high_level': 0.3,
-            'overall_volume': 0.6,
-            'beat_detected': True
-        }
-        mock_audio_analyzer.return_value = mock_analyzer
-        
-        grid = DeformedGrid(
-            dimension=4,
-            audio_reactive=True,
-            distortion_strength=0.2
-        )
-        
-        # Should have created audio analyzer
-        assert grid.audio_analyzer is not None
-        mock_analyzer.start_audio_capture.assert_called_once()
-        
-        # Should be able to get audio features
-        features = grid.audio_analyzer.get_audio_features()
-        assert features['bass_level'] == 0.8
-        assert features['beat_detected'] is True
     
     def test_create_deformed_grid_function(self):
         """Test the convenience function for creating grids."""
@@ -264,10 +235,6 @@ class TestPackageIntegration:
     
     def test_module_cleanup(self):
         """Test that modules clean up resources properly."""
-        # Test audio analyzer cleanup
-        analyzer = AudioAnalyzer()
-        analyzer.stop_audio_capture()  # Should not raise error even if not started
-        
         # Test grid cleanup (implicit through garbage collection)
         grid = DeformedGrid(dimension=2)
         del grid  # Should not cause issues

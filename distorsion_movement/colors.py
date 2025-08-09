@@ -392,12 +392,12 @@ class ColorGenerator:
 
 
     @staticmethod
-    def get_animated_color(base_color: Tuple[int, int, int], 
-                          position_index: int,
-                          time: float,
-                          color_animation: bool,
-                          audio_reactive: bool,
-                          audio_analyzer=None) -> Tuple[int, int, int]:
+    def get_animated_color(
+        base_color: Tuple[int, int, int], 
+        position_index: int,
+        time: float,
+        color_animation: bool
+    ) -> Tuple[int, int, int]:
         """
         Applique une animation de couleur si activée.
         
@@ -406,64 +406,21 @@ class ColorGenerator:
             position_index: Index de position pour variation
             time: Temps actuel pour l'animation
             color_animation: Si l'animation normale est activée
-            audio_reactive: Si l'animation audio-réactive est activée
-            audio_analyzer: Instance de l'analyseur audio (optionnel)
             
         Returns:
             Couleur animée ou couleur de base si animation désactivée
         """
         # Si aucune animation n'est activée, retourner la couleur de base
-        if not color_animation and not audio_reactive:
+        if not color_animation:
             return base_color
         
         r, g, b = base_color
         
         # Appliquer l'animation normale seulement si color_animation est True
-        if color_animation and (not audio_reactive or not audio_analyzer):
+        if color_animation:
             pulse = math.sin(time * 2 + position_index * 0.1) * 0.2 + 1.0
             pulse = max(0.5, min(1.5, pulse))
             r = int(min(255, r * pulse))
             g = int(min(255, g * pulse))
             b = int(min(255, b * pulse))
             return (r, g, b)
-        
-        # Si seul audio_reactive est activé (mais pas color_animation)
-        if audio_reactive and audio_analyzer and not color_animation:
-            # Ne pas appliquer l'animation normale, aller directement à l'audio
-            pass
-        # Si les deux sont activés, appliquer d'abord l'animation normale
-        elif color_animation and audio_reactive and audio_analyzer:
-            pulse = math.sin(time * 2 + position_index * 0.1) * 0.2 + 1.0
-            pulse = max(0.5, min(1.5, pulse))
-            r = int(min(255, r * pulse))
-            g = int(min(255, g * pulse))
-            b = int(min(255, b * pulse))
-        # Si ni l'un ni l'autre ne s'applique, retourner la couleur de base
-        elif not audio_reactive or not audio_analyzer:
-            return base_color
-        
-        # Animation réactive à l'audio
-        audio_features = audio_analyzer.get_audio_features()
-        
-        # Beat detection - flash blanc sur les beats
-        if audio_features['beat_detected']:
-            flash_intensity = 0.7
-            r = int(min(255, r + (255 - r) * flash_intensity))
-            g = int(min(255, g + (255 - g) * flash_intensity))
-            b = int(min(255, b + (255 - b) * flash_intensity))
-        
-        # Hautes fréquences - augmentent la luminosité
-        high_boost = 1.0 + audio_features['high_level'] * 0.5
-        r = int(min(255, r * high_boost))
-        g = int(min(255, g * high_boost))
-        b = int(min(255, b * high_boost))
-        
-        # Moyennes fréquences - rotation de teinte
-        if audio_features['mid_level'] > 0.1:
-            # Convertir en HSV pour rotation de teinte
-            h, s, v = colorsys.rgb_to_hsv(r/255.0, g/255.0, b/255.0)
-            h = (h + audio_features['mid_level'] * 0.3) % 1.0
-            r, g, b = colorsys.hsv_to_rgb(h, s, v)
-            r, g, b = int(r * 255), int(g * 255), int(b * 255)
-        
-        return (r, g, b)
