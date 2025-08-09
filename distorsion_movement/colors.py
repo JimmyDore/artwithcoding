@@ -307,7 +307,36 @@ class ColorGenerator:
                 # Outer ring: deep brown
                 return red
 
+        elif color_scheme == "sunset":
+            # Sunset gradient: warm yellow → orange → pink → purple
+            yellow = (255, 223, 0)
+            orange = (255, 140, 0)
+            pink   = (255, 105, 180)
+            purple = (128, 0, 128)
 
+            # Map vertical position to gradient
+            t = y_norm  # 0 = top, 1 = bottom
+
+            if t < 0.33:
+                # Yellow to orange
+                blend = t / 0.33
+                r = int(yellow[0] + (orange[0] - yellow[0]) * blend)
+                g = int(yellow[1] + (orange[1] - yellow[1]) * blend)
+                b = int(yellow[2] + (orange[2] - yellow[2]) * blend)
+            elif t < 0.66:
+                # Orange to pink
+                blend = (t - 0.33) / 0.33
+                r = int(orange[0] + (pink[0] - orange[0]) * blend)
+                g = int(orange[1] + (pink[1] - orange[1]) * blend)
+                b = int(orange[2] + (pink[2] - orange[2]) * blend)
+            else:
+                # Pink to purple
+                blend = (t - 0.66) / 0.34
+                r = int(pink[0] + (purple[0] - pink[0]) * blend)
+                g = int(pink[1] + (purple[1] - pink[1]) * blend)
+                b = int(pink[2] + (purple[2] - pink[2]) * blend)
+
+            return (r, g, b)
 
         # Par défaut, retourner blanc
         return (255, 255, 255)

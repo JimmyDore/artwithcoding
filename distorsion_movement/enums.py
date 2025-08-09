@@ -51,6 +51,7 @@ class ColorScheme(Enum):
     DESERT = "desert"
     METALLICS = "metallics"
     REGGAE = "reggae"
+    SUNSET = "sunset"
 
 
 class ShapeType(Enum):
