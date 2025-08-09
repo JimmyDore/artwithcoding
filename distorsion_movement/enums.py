@@ -54,6 +54,7 @@ class ColorScheme(Enum):
     SUNSET = "sunset"
     POP_ART = "pop_art"
     VAPORWAVE = "vaporwave"
+    CANDY_SHOP = "candy_shop"
 
 
 class ShapeType(Enum):

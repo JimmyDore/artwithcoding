@@ -214,6 +214,8 @@
 
 - [ ] Add an option to export the parameters of the current scene (just export the params.json file) and find a way to load it automatically when the app is launched. Maybe reuse the save image feature, and save a json file with the parameters. Maybe add an option to iterate through all saved scenes.
 
+- [ ] Refactor the shapes, colors, and distorsions to be more modular and easier to add new ones. (one file for each type of distorsion, one file for each shape, one file for each color scheme)
+
 - Add in README: 
   - [ ] the new distorsions (from pulse, pulse not included)
   - [ ] the new shapes (from koch snowflake)

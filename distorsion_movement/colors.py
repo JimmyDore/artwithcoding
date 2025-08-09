@@ -372,6 +372,20 @@ class ColorGenerator:
             # Checkerboard pattern cycling through palette
             return palette[(row + col) % len(palette)]
 
+        elif color_scheme == "candy_shop":
+            # Candy shop - bubblegum pink, mint green, lemon yellow
+            bubblegum = (255, 105, 180)  # pink
+            mint      = (152, 255, 152)  # light mint green
+            lemon     = (255, 250, 102)  # lemon yellow
+
+            palette = [bubblegum, mint, lemon]
+
+            row = index // dimension
+            col = index % dimension
+
+            # Checkerboard cycling through candy colors
+            return palette[(row + col) % len(palette)]
+
         # Par défaut, retourner blanc
         return (255, 255, 255)
 
