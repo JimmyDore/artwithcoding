@@ -1,6 +1,6 @@
 # 🎨 Distorsion Movement - Interactive Generative Art Engine
 
-**Distorsion Movement** is a real-time generative art platform that creates mesmerizing visual experiences through geometrically deformed grids. The system generates dynamic, interactive artwork by applying mathematical distortions to regular grids of multiple geometric shapes (squares, circles, triangles, hexagons, pentagons, stars, diamonds)
+**Distorsion Movement** is a real-time generative art platform that creates mesmerizing visual experiences through geometrically deformed grids. The system generates dynamic, interactive artwork by applying mathematical distortions to regular grids of multiple geometric shapes (squares, circles, triangles, hexagons, pentagons, stars, diamonds) with variable grid densities and comprehensive scene management capabilities
 
 [![Watch the demo on YouTube](https://img.youtube.com/vi/GWTRef1pFJo/0.jpg)](https://www.youtube.com/watch?v=GWTRef1pFJo)
 
@@ -11,18 +11,24 @@ The project creates animated grids of geometric shapes where each shape can be:
 - **Multiple shape types** including squares, circles, triangles, hexagons, pentagons, stars, diamonds, and fractal Koch snowflakes
 - **Geometrically distorted** using 20 mathematical functions (sine waves, Perlin noise, circular patterns, spiral warps, lens effects, moiré patterns, etc.)
 - **Dynamically colored** using 20 schemes (rainbow, gradient, neon, cyberpunk, thermal, vaporwave, etc.)
-- **Interactively controlled** through keyboard shortcuts and parameters
+- **Dynamically resized** with variable grid densities from 8×8 to 256×256 cells
+- **Interactively controlled** through comprehensive keyboard shortcuts and real-time parameter adjustment
 - **Mixed or uniform** shape distribution across the grid
+- **Saved and loaded** as complete scene configurations with all parameters preserved
+- **Recorded as GIFs** for sharing animated sequences
 
 ### How It Works Technically
 
 The core architecture follows a modular design with clear separation of concerns:
 
-1. **Grid Generation**: Creates a regular NxN grid of geometric shapes with base positions
-2. **Shape System**: Supports 7 different shape types with unified rendering architecture
+1. **Grid Generation**: Creates a regular NxN grid of geometric shapes with base positions and dynamic density control
+2. **Shape System**: Supports 8 different shape types with unified rendering architecture
 3. **Distortion Engine**: Applies mathematical transformations to deform shape positions and orientations
 4. **Color System**: Generates dynamic colors based on position, time, and color animation input
-6. **Rendering**: Real-time pygame-based visualization with 60fps target
+5. **Scene Management**: Complete parameter serialization/deserialization with YAML persistence
+6. **Media Export**: Real-time GIF recording and PNG screenshot capabilities
+7. **Status Monitoring**: Live parameter display and interactive help system
+8. **Rendering**: Real-time pygame-based visualization with 60fps target
 
 ### Mathematical Foundation
 
@@ -35,15 +41,31 @@ The distortions are based on several mathematical approaches:
 - **Flow Distortions**: Curl-noise vector fields for organic movement
 - **Random Static**: Controlled randomness for chaotic effects
 
+### How does a distorsion function work ?
+
+**Global Principle**: A distortion function is a mathematical transformation that takes static grid positions and creates smooth, organic movement by calculating new positions and rotations for each element over time.
+
+**Input Parameters**:
+- `base_pos` - Original static position (x, y) of a grid element
+- `params` - Unique parameters per cell (phase offsets, frequencies) for variety
+- `cell_size` - Grid cell size for appropriate movement scaling
+- `distortion_strength` - Global intensity multiplier (0.0 = no effect, 1.0 = full effect)
+- `time` - Current animation time (key ingredient for smooth motion)
+- `canvas_size` - Canvas dimensions for center-based effects
+
+**Output**: `(new_x, new_y, rotation)` - The displaced position and rotation angle where the element should be drawn.
+
+**Animation Mechanics**: The system runs at **60 FPS**, meaning every square is recalculated and redrawn 60 times per second. Small time increments combined with continuous mathematical functions (sine, cosine, etc.) create the illusion of fluid movement. Each frame, the `time` parameter increases slightly, producing smooth positional changes that your eye perceives as organic motion rather than discrete jumps.
+
 
 ## 🏗️ Project Structure
 
 ```
 distorsion_movement/
 ├── __init__.py              # Package entry point & public API
-├── deformed_grid.py         # Main DeformedGrid class
+├── deformed_grid.py         # Main DeformedGrid class with scene management
 ├── enums.py                 # Type definitions (DistortionType, ColorScheme, ShapeType)
-├── shapes.py                # Shape rendering system (7 shape types)
+├── shapes.py                # Shape rendering system
 ├── colors.py                # Color generation algorithms
 ├── distortions.py           # Geometric distortion algorithms
 ├── demos.py                 # Demo functions & usage examples
@@ -52,7 +74,9 @@ distorsion_movement/
 │   ├── test_enums.py        # Enum validation tests
 │   ├── test_deformed_grid.py # Grid functionality tests
 │   └── ...                  # Other test modules
-└── README.md               # This file
+└── images/                  # Generated PNG screenshots
+└── saved_params/            # Scene configuration YAML files
+└── gifs/                    # Generated GIF animations
 ```
 
 ### Module Responsibilities
@@ -60,27 +84,31 @@ distorsion_movement/
 #### 🎨 **`deformed_grid.py`** - Core Engine
 - Main `DeformedGrid` class that orchestrates everything
 - Pygame rendering loop and event handling
-- Grid generation and position calculations
+- Grid generation and position calculations with dynamic density control
 - Shape type management and rendering coordination
 - Animation timing and state management
 - Fullscreen/windowed mode switching
-- Interactive controls (keyboard shortcuts, shape cycling)
+- Interactive controls (keyboard shortcuts, shape cycling, parameter adjustment)
+- Scene management (save/load YAML configurations)
+- Status display and interactive help system
+- GIF recording and media export
+- Real-time grid density adjustment (8×8 to 256×256)
 
 #### 🔷 **`shapes.py`** - Shape Rendering System
-- Unified rendering architecture for 7 geometric shapes
+- Unified rendering architecture for 8 geometric shapes
 - Rotation and scaling support for all shape types
 - Mathematically precise shape generation (triangles, hexagons, stars, etc.)
 - Consistent interface with fallback error handling
 - Optimized drawing functions using pygame primitives
 
 #### 🌈 **`colors.py`** - Color Generation
-- 10 different color schemes (monochrome, gradient, rainbow, neon, etc.)
+- 20 different color schemes (monochrome, gradient, rainbow, neon, cyberpunk, vaporwave, etc.)
 - Position-based color calculations
 - Time-based color animations
 - HSV/RGB color space conversions
 
 #### 🌀 **`distortions.py`** - Geometric Engine 
-- 7 distortion algorithms (random, sine, Perlin, circular, swirl, ripple, flow)
+- 20 distortion algorithms (random, sine, Perlin, circular, swirl, ripple, flow, tornado, lens, moiré, etc.)
 - Mathematical transformation functions
 - Parameter generation for each square
 - Time-based animation calculations
@@ -128,18 +156,49 @@ grid.run_interactive()
 
 ## 🎛️ Interactive Controls
 
+### Navigation & Interface
 | Key | Action |
 |-----|--------|
-| `F` | Toggle fullscreen/windowed mode |
-| `C` | Cycle through color schemes |
-| `SPACE` | Cycle through distortion types |
-| `H` | **NEW**: Cycle through shape types |
-| `Shift+H` | **NEW**: Toggle mixed/single shape mode |
-| `+/-` | Increase/decrease distortion intensity |
-| `A` | Toggle color animation |
-| `R` | Reset and regenerate all parameters |
-| `S` | Save current image as PNG |
 | `ESC` | Exit application |
+| `F` | Toggle fullscreen/windowed mode |
+| `I` or `TAB` | Show/hide interactive help menu |
+| `D` | Show/hide status display |
+
+### Distortion & Animation
+| Key | Action |
+|-----|--------|
+| `SPACE` / `Shift+SPACE` | Next/previous distortion type |
+| `+/-` | Increase/decrease distortion intensity |
+| `R` | Regenerate random parameters |
+
+### Grid & Density  
+| Key | Action |
+|-----|--------|
+| `T` then `+/-` | **NEW**: Adjust grid density (number of cells) |
+
+### Colors
+| Key | Action |
+|-----|--------|
+| `C` / `Shift+C` | Next/previous color scheme |
+| `A` | Toggle color animation on/off |
+
+### Shapes
+| Key | Action |
+|-----|--------|
+| `H` / `Shift+H` | Next/previous shape type |
+| `Ctrl+H` | Toggle mixed shapes mode |
+
+### Media & Saving
+| Key | Action |
+|-----|--------|
+| `S` | **NEW**: Save current image (PNG + parameters YAML) |
+| `G` | **NEW**: Start/stop GIF recording |
+
+### Scene Management
+| Key | Action |
+|-----|--------|
+| `L` / `Shift+L` | **NEW**: Load next/previous saved scene |
+| `P` | **NEW**: Refresh saved scenes list |
 
 ## 🎨 Available Visual Modes
 
@@ -208,6 +267,13 @@ Install with:
 pip install -r requirements.txt
 ```
 
+Core dependencies include:
+- `pygame` - Real-time graphics and event handling
+- `numpy` - Numerical computations and array processing
+- `imageio` - GIF animation export
+- `PyYAML` - Scene parameter serialization
+- `pytest` - Testing framework
+
 
 ## 🧪 Testing
 
@@ -238,9 +304,14 @@ The project has an extensive roadmap for future enhancements (see `TODO.md`):
 ✅ **Real-time Performance**: 60fps rendering with thousands of shapes  
 ✅ **Multiple Shape Types**: 8 geometric shapes (squares, circles, triangles, hexagons, pentagons, stars, diamonds, Koch snowflakes)  
 ✅ **Flexible Shape Modes**: Single shape or mixed shape grids  
+✅ **Dynamic Grid Density**: Live adjustment of cell count and size (8×8 to 256×256)  
+✅ **Comprehensive Status Display**: Real-time parameter monitoring overlay  
+✅ **Scene Management**: Save/load visual configurations with YAML parameters  
+✅ **Media Export**: PNG screenshots and GIF animation recording  
+✅ **Interactive Help System**: Built-in keyboard shortcut reference  
 ✅ **Modular Architecture**: Clean separation of concerns, easily extensible  
 ✅ **Interactive Controls**: Live parameter adjustment and shape cycling  
-✅ **Rich Visual Combinations**: 8 shapes × 20 distortions × 20 colors = 3,200 combinations  
+✅ **Rich Visual Combinations**: 8 shapes × 20 distortions × 20 colors × variable grid sizes = 32,000+ combinations  
 ✅ **Cross-platform**: Works on Windows, macOS, Linux  
 ✅ **Comprehensive Testing**: Full unit test coverage  
 ✅ **Fullscreen Support**: Immersive viewing experience

@@ -32,12 +32,12 @@
   - [X] the new distorsions (from pulse, pulse not included)
   - [X] the new shapes (from koch snowflake)
   - [X] the new colors (from analogous)
-  - [ ] the size guide (and mention it in the number of combinations possible)
-  - [ ] the status display
-  - [ ] how a distorsion function works, what parameters and what it basically does (compute next position and rotations based on ...)
-  - [ ] the new indicators screen
-  - [ ] the saved/load scenes feature
-  - [ ] the previous/next scene feature
+  - [X] the size guide (and mention it in the number of combinations possible)
+  - [X] the new indicators screen
+  - [X] the saved/load scenes feature
+  - [X] the previous/next scene feature
+  - [X] how a distorsion function works, what parameters and what it basically does (compute next position and rotations based on ...)
+
 
 - [ ] Refactor the shapes, colors, and distorsions to be more modular and easier to add new ones. (one file for each type of distorsion, one file for each shape, one file for each color scheme)
 - [ ] Add a guide in the README.md to explain how to add new shapes, colors, and distorsions + update the modules explanations
