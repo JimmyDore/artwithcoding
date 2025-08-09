@@ -212,7 +212,7 @@
 - [ ] Add new color schemes (inspire from pastel color in archive)
 - [ ] Add new distortion types (take a look at the new_distortions_again.md file for more ideas)
 
-- [ ] Add an option to export the parameters of the current scene (just export the params.json file) and find a way to load it automatically when the app is launched. Maybe reuse the save image feature, and save a json file with the parameters.
+- [ ] Add an option to export the parameters of the current scene (just export the params.json file) and find a way to load it automatically when the app is launched. Maybe reuse the save image feature, and save a json file with the parameters. Maybe add an option to iterate through all saved scenes.
 
 - Add in README: 
   - [ ] the new distorsions (from pulse, pulse not included)

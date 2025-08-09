@@ -290,6 +290,24 @@ class ColorGenerator:
 
             return (r, g, b)
 
+        elif color_scheme == "reggae":
+            # Reggae theme - green, yellow, red
+            green  = (0, 153, 51)     # rich green
+            yellow = (255, 204, 0)    # bright yellow
+            red    = (204, 0, 0)      # deep red
+
+            # Use distance and position to vary tones
+            if distance_to_center < 0.33:
+                # Center: light sand
+                return green
+            elif distance_to_center < 0.66:
+                # Mid ring: warm orange
+                return yellow
+            else:
+                # Outer ring: deep brown
+                return red
+
+
 
         # Par défaut, retourner blanc
         return (255, 255, 255)

@@ -50,6 +50,7 @@ class ColorScheme(Enum):
     DUOTONE_ACCENT = "duotone_accent"
     DESERT = "desert"
     METALLICS = "metallics"
+    REGGAE = "reggae"
 
 
 class ShapeType(Enum):
