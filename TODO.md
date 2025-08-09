@@ -32,7 +32,7 @@
 - [X] Clean up useless stuff in TODO.md
 
 - [X] Add a keyboard shortcut to do previous distorsion/shape/color scheme
-- [ ] The menu is too big, on one column, maybe 2 columns now ? 
+- [X] The menu is too big, on one column, maybe 2 columns now ? 
 - [ ] Clean up useless stuff in README.md (audio etc...)
 
 - Add in README: 
@@ -44,10 +44,11 @@
   - [ ] how a distorsion function works, what parameters and what it basically does (compute next position and rotations based on ...)
   - [ ] the new indicators screen
   - [ ] the saved/load scenes feature
+  - [ ] the previous/next scene feature
 
-- [ ] Refactor the shapes, colors, and distorsions to be more modular and easier to add new ones. (one file for each type of distorsion, one file for each shape, one file for each color scheme)
-
+- [ ] Find cool combinations to showcase and save them
 - [ ] Save as mp4 feature
+- [ ] Refactor the shapes, colors, and distorsions to be more modular and easier to add new ones. (one file for each type of distorsion, one file for each shape, one file for each color scheme)
 
 - [ ] Add new shape types
 - [ ] Add new color schemes (inspire from pastel color in archive)

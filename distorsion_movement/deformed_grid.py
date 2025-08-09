@@ -337,31 +337,95 @@ class DeformedGrid:
         
         # Position de départ pour le texte
         y_offset = 100
-        section_spacing = 40
-        line_spacing = 25
+        section_spacing = 35
+        line_spacing = 22
         
-        for section_title, section_controls in controls:
-            # Titre de section
-            section_text = self.help_title_font.render(section_title, True, (255, 200, 100))
-            section_rect = section_text.get_rect(center=(current_size[0] // 2, y_offset))
-            self.screen.blit(section_text, section_rect)
-            y_offset += section_spacing
+        # Diviser les contrôles en deux colonnes
+        mid_index = len(controls) // 2
+        left_column = controls[:mid_index]
+        right_column = controls[mid_index:]
+        
+        # Largeur des colonnes avec padding
+        padding = 40
+        column_width = (current_size[0] - padding * 3) // 2  # 3 paddings: left, center, right
+        left_column_x = padding
+        right_column_x = current_size[0] // 2 + padding // 2
+        
+        # Afficher les colonnes en parallèle
+        max_sections = max(len(left_column), len(right_column))
+        
+        for i in range(max_sections):
+            current_y_left = y_offset
+            current_y_right = y_offset
             
-            # Contrôles de la section
-            for key, description in section_controls:
-                # Afficher la touche en couleur
-                key_text = self.help_font.render(f"{key}:", True, (100, 255, 100))
-                desc_text = self.help_font.render(description, True, (255, 255, 255))
+            # Colonne de gauche
+            if i < len(left_column):
+                section_title, section_controls = left_column[i]
                 
-                # Centrer horizontalement
-                total_width = key_text.get_width() + desc_text.get_width() + 10
-                start_x = (current_size[0] - total_width) // 2
+                # Titre de section (gauche)
+                section_text = self.help_title_font.render(section_title, True, (255, 200, 100))
+                section_x = left_column_x + (column_width - section_text.get_width()) // 2
+                self.screen.blit(section_text, (section_x, current_y_left))
+                current_y_left += section_spacing
                 
-                self.screen.blit(key_text, (start_x, y_offset))
-                self.screen.blit(desc_text, (start_x + key_text.get_width() + 10, y_offset))
-                y_offset += line_spacing
+                # Contrôles de la section (gauche)
+                for key, description in section_controls:
+                    # Afficher la touche en couleur
+                    key_text = self.help_font.render(f"{key}:", True, (100, 255, 100))
+                    
+                    # Calculer l'espace disponible pour la description
+                    available_width = column_width - key_text.get_width() - 20
+                    
+                    # Tronquer la description si nécessaire
+                    if self.help_font.size(description)[0] > available_width:
+                        # Tronquer progressivement jusqu'à ce que ça rentre
+                        truncated_desc = description
+                        while self.help_font.size(truncated_desc + "...")[0] > available_width and len(truncated_desc) > 10:
+                            truncated_desc = truncated_desc[:-1]
+                        description = truncated_desc + "..."
+                    
+                    desc_text = self.help_font.render(description, True, (255, 255, 255))
+                    
+                    # Alignement à gauche dans la colonne
+                    self.screen.blit(key_text, (left_column_x, current_y_left))
+                    self.screen.blit(desc_text, (left_column_x + key_text.get_width() + 10, current_y_left))
+                    current_y_left += line_spacing
             
-            y_offset += 10  # Espacement entre sections
+            # Colonne de droite
+            if i < len(right_column):
+                section_title, section_controls = right_column[i]
+                
+                # Titre de section (droite)
+                section_text = self.help_title_font.render(section_title, True, (255, 200, 100))
+                section_x = right_column_x + (column_width - section_text.get_width()) // 2
+                self.screen.blit(section_text, (section_x, current_y_right))
+                current_y_right += section_spacing
+                
+                # Contrôles de la section (droite)
+                for key, description in section_controls:
+                    # Afficher la touche en couleur
+                    key_text = self.help_font.render(f"{key}:", True, (100, 255, 100))
+                    
+                    # Calculer l'espace disponible pour la description
+                    available_width = column_width - key_text.get_width() - 20
+                    
+                    # Tronquer la description si nécessaire
+                    if self.help_font.size(description)[0] > available_width:
+                        # Tronquer progressivement jusqu'à ce que ça rentre
+                        truncated_desc = description
+                        while self.help_font.size(truncated_desc + "...")[0] > available_width and len(truncated_desc) > 10:
+                            truncated_desc = truncated_desc[:-1]
+                        description = truncated_desc + "..."
+                    
+                    desc_text = self.help_font.render(description, True, (255, 255, 255))
+                    
+                    # Alignement à gauche dans la colonne
+                    self.screen.blit(key_text, (right_column_x, current_y_right))
+                    self.screen.blit(desc_text, (right_column_x + key_text.get_width() + 10, current_y_right))
+                    current_y_right += line_spacing
+            
+            # Prendre la plus grande hauteur des deux colonnes pour l'espacement
+            y_offset = max(current_y_left, current_y_right) + 15
         
         # Instructions en bas
         footer_text = self.help_font.render("Appuyez sur 'I' ou TAB pour fermer cette aide", True, (200, 200, 200))
