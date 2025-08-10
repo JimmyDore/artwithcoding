@@ -17,6 +17,7 @@ from .koch_snowflake import KochSnowflake
 from .ring import Ring
 from .yin_yang import YinYang
 from .leaf import Leaf
+from .ellipsis import Ellipsis
 
 # Registre des formes disponibles
 SHAPE_REGISTRY = {
@@ -31,6 +32,7 @@ SHAPE_REGISTRY = {
     "ring": Ring.draw,
     "yin_yang": YinYang.draw,
     "leaf": Leaf.draw,
+    "ellipsis": Ellipsis.draw,
 }
 
 
@@ -50,6 +52,7 @@ __all__ = [
     'BaseShape',
     'Square', 'Circle', 'Triangle', 'Hexagon', 'Pentagon', 
     'Star', 'Diamond', 'KochSnowflake', 'Ring', 'YinYang', 'Leaf',
+    'Ellipsis',
     'get_shape_renderer_function',
     'SHAPE_REGISTRY'
 ]

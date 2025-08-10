@@ -8,7 +8,7 @@ You already have 3–6 sides covered; adding more could allow for patterns that 
 2. Curved / Organic Shapes
 These can make your generative art look less rigid:
 
-- Ellipse — a stretched circle; rotation makes it feel dynamic.
+- ✅ Ellipse — a stretched circle; rotation makes it feel dynamic.
 - Arc / Semi-Circle — partial curves work beautifully in repetitive patterns.
 - ✅ Leaf Shape — two mirrored arcs meeting at sharp tips.
 

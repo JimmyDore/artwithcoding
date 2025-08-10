@@ -3,6 +3,7 @@
 """
 
 from enum import Enum
+from token import ELLIPSIS
 
 
 class DistortionType(Enum):
@@ -66,3 +67,4 @@ class ShapeType(Enum):
     RING = "ring"
     YIN_YANG = "yin_yang"
     LEAF = "leaf"
+    ELLIPSIS = "ellipsis"
