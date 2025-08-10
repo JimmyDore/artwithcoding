@@ -65,3 +65,4 @@ class ShapeType(Enum):
     KOCH_SNOWFLAKE = "koch_snowflake"
     RING = "ring"
     YIN_YANG = "yin_yang"
+    LEAF = "leaf"

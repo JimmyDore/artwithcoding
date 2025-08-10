@@ -10,7 +10,7 @@ These can make your generative art look less rigid:
 
 - Ellipse — a stretched circle; rotation makes it feel dynamic.
 - Arc / Semi-Circle — partial curves work beautifully in repetitive patterns.
-- Leaf Shape — two mirrored arcs meeting at sharp tips.
+- ✅ Leaf Shape — two mirrored arcs meeting at sharp tips.
 
 3. Complex Geometric Stars
 You have a 5-point star — but variations can really spice things up:
