@@ -338,8 +338,17 @@ To add a new shape type, you need to:
    - Add to `__all__` list: `'YourShape'`
 
 ### Adding New Color Schemes
-- Create new color schemes in `colors.py`
-- Add the new scheme to `ColorScheme` enum in `enums.py`
+To add a new color scheme, you need to:
+1. **Add the scheme to the enum**: Add your new color scheme to `ColorScheme` enum in `enums.py`
+2. **Create the color scheme file**: Create a new file `colors/your_scheme.py` with:
+   - A class inheriting from `BaseColor`
+   - A static `get_color_for_position()` method with signature: `(square_color, x_norm, y_norm, distance_to_center, index, dimension) -> Tuple[int, int, int]`
+   - Import the base class: `from .base_color import BaseColor`
+   - Use helper methods like `_clamp_rgb()`, `_blend_colors()`, `_hsv_to_rgb_clamped()` for color operations
+3. **Update the package**: Add your color scheme to `colors/__init__.py`:
+   - Import: `from .your_scheme import YourScheme`
+   - Add to `COLOR_SCHEME_REGISTRY`: `"your_scheme": YourScheme.get_color_for_position`
+   - Add to `__all__` list: `'YourScheme'`
 
 ---
 
