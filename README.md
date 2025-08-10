@@ -320,11 +320,26 @@ The project has an extensive roadmap for future enhancements (see `TODO.md`):
 ## 🤝 Contributing
 
 The project is designed for easy extension:
+
+### Adding New Distortions
 - Add new distortion algorithms in `distortions.py`
-- Create new shape types in `shapes.py`
+- Add the new distortion type to `DistortionType` enum in `enums.py`
+
+### Adding New Shapes
+To add a new shape type, you need to:
+1. **Add the shape to the enum**: Add your new shape to `ShapeType` enum in `enums.py`
+2. **Create the shape file**: Create a new file `shapes/your_shape.py` with:
+   - A class inheriting from `BaseShape`
+   - A static `draw()` method with signature: `(surface, x, y, rotation, size, color, **kwargs)`
+   - Import the base class: `from .base_shape import BaseShape`
+3. **Update the package**: Add your shape to `shapes/__init__.py`:
+   - Import: `from .your_shape import YourShape`
+   - Add to `SHAPE_REGISTRY`: `"your_shape": YourShape.draw`
+   - Add to `__all__` list: `'YourShape'`
+
+### Adding New Color Schemes
 - Create new color schemes in `colors.py`
-- Build new demo configurations in `demos.py`
-- Extend shape interactions and morphing capabilities
+- Add the new scheme to `ColorScheme` enum in `enums.py`
 
 ---
 
