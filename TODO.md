@@ -43,9 +43,10 @@
 
 - [ ] Refactor the shapes, colors, and distorsions to be more modular and easier to add new ones. (one file for each type of distorsion, one file for each shape, one file for each color scheme) + Add a guide in the README.md to explain how to add new shapes, colors, and distorsions + update the modules explanations
   - [X] shapes
-  - [ ] colors
+  - [X] colors
   - [ ] distorsions
-- [ ] Filter out ugly combinations & redo better youtube video demoing different shapes & do one demoing all the features in the menu
+
+- [ ] Filter out ugly saved combinations & redo better youtube video demoing different shapes & do one demoing all the features in the menu
 - [ ] Prepare LinkedIn post to share the repo and the video
 
 - [ ] Save as mp4 feature

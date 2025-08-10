@@ -15,7 +15,7 @@ from .star import Star
 from .diamond import Diamond
 from .koch_snowflake import KochSnowflake
 from .ring import Ring
-
+from .yin_yang import YinYang
 
 # Registre des formes disponibles
 SHAPE_REGISTRY = {
@@ -28,6 +28,7 @@ SHAPE_REGISTRY = {
     "diamond": Diamond.draw,
     "koch_snowflake": KochSnowflake.draw,
     "ring": Ring.draw,
+    "yin_yang": YinYang.draw,
 }
 
 
@@ -46,7 +47,7 @@ def get_shape_renderer_function(shape_type: str):
 __all__ = [
     'BaseShape',
     'Square', 'Circle', 'Triangle', 'Hexagon', 'Pentagon', 
-    'Star', 'Diamond', 'KochSnowflake', 'Ring',
+    'Star', 'Diamond', 'KochSnowflake', 'Ring', 'YinYang',
     'get_shape_renderer_function',
     'SHAPE_REGISTRY'
 ]
