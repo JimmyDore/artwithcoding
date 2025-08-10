@@ -8,7 +8,7 @@
 
 ### What It Does
 The project creates animated grids of geometric shapes where each shape can be:
-- **Multiple shape types** including squares, circles, triangles, hexagons, pentagons, stars, diamonds, and fractal Koch snowflakes
+- **Multiple shape types** including squares, circles, triangles, hexagons, pentagons, stars, diamonds, ring and fractal Koch snowflakes
 - **Geometrically distorted** using 20 mathematical functions (sine waves, Perlin noise, circular patterns, spiral warps, lens effects, moiré patterns, etc.)
 - **Dynamically colored** using 20 schemes (rainbow, gradient, neon, cyberpunk, thermal, vaporwave, etc.)
 - **Dynamically resized** with variable grid densities from 8×8 to 256×256 cells
@@ -123,7 +123,7 @@ distorsion_movement/
 #### 📝 **`enums.py`** - Type Safety
 - `DistortionType`: RANDOM, SINE, PERLIN, CIRCULAR, SWIRL, RIPPLE, FLOW, PULSE, CHECKERBOARD, CHECKERBOARD_DIAGONAL, TORNADO, SPIRAL, SHEAR, LENS, SPIRAL_WAVE, NOISE_ROTATION, CURL_WARP, FRACTAL_NOISE, MOIRE, KALEIDOSCOPE_TWIST
 - `ColorScheme`: MONOCHROME, BLACK_WHITE_RADIAL, BLACK_WHITE_ALTERNATING, GRADIENT, RAINBOW, COMPLEMENTARY, PASTEL, NEON, ANALOGOUS, CYBERPUNK, AURORA_BOREALIS, INFRARED_THERMAL, DUOTONE_ACCENT, DESERT, METALLICS, REGGAE, SUNSET, POP_ART, VAPORWAVE, CANDY_SHOP
-- `ShapeType`: SQUARE, CIRCLE, TRIANGLE, HEXAGON, PENTAGON, STAR, DIAMOND, KOCH_SNOWFLAKE
+- `ShapeType`: SQUARE, CIRCLE, TRIANGLE, HEXAGON, PENTAGON, STAR, DIAMOND, KOCH_SNOWFLAKE, RING
 
 ## 🚀 Quick Start
 
@@ -211,6 +211,7 @@ grid.run_interactive()
 - **Star**: Five-pointed star shapes
 - **Diamond**: Rotated square formations
 - **Koch Snowflake**: Fractal snowflake patterns with recursive geometry
+- **Ring**: Hollow circle shapes with variable thickness
 
 ### Shape Modes
 - **Single Shape**: All cells use the same shape type (uniform grid)
@@ -311,7 +312,7 @@ The project has an extensive roadmap for future enhancements (see `TODO.md`):
 ✅ **Interactive Help System**: Built-in keyboard shortcut reference  
 ✅ **Modular Architecture**: Clean separation of concerns, easily extensible  
 ✅ **Interactive Controls**: Live parameter adjustment and shape cycling  
-✅ **Rich Visual Combinations**: 8 shapes × 20 distortions × 20 colors × variable grid sizes = 32,000+ combinations  
+✅ **Rich Visual Combinations**: 9 shapes × 20 distortions × 20 colors × 10 variable grid sizes = 36,000+ combinations  
 ✅ **Cross-platform**: Works on Windows, macOS, Linux  
 ✅ **Comprehensive Testing**: Full unit test coverage  
 ✅ **Fullscreen Support**: Immersive viewing experience
