@@ -1234,6 +1234,133 @@ class DistortionEngine:
 
         return (new_x, new_y, rotation)
 
+    @staticmethod
+    def apply_distortion_hypno_spiral_pulse(
+        base_pos: Tuple[float, float],
+        params: dict,
+        cell_size: int,
+        distortion_strength: float,
+        time: float,
+        canvas_size: Tuple[int, int]
+    ) -> Tuple[float, float, float]:
+        """
+        Hypno Spiral Pulse:
+        - Base spiral (radius-based angular twist).
+        - Pulse modulates ANGLE (not radius) so the whole spiral "breathes".
+        - Spin reverses direction halfway through the pulse cycle (smoothly).
+        - Optional micro-noise for a slight jelly feel.
+        """
+        import math, random
+
+        x, y = base_pos
+        cx, cy = canvas_size[0] * 0.5, canvas_size[1] * 0.5
+
+        # ---------- Defaults (override via params) ----------
+        p = {
+            "spin_speed": 0.18,        # overall spin intensity (radians per sec scale)
+            "twist_amount": 1.05,      # spiral twist strength (radius -> angle)
+            "pulse_freq": 0.6,         # pulses per second
+            "pulse_strength": 0.85,    # how strongly the pulse pushes the angle
+            "pulse_rad_pow": 0.85,     # how pulse scales with radius (0..1 softer, >1 stronger at edges)
+            "noise_amount": 0.12,      # 0..1 tiny displacement to soften banding
+            "noise_scale": 0.02,       # spatial scale for the micro-noise
+            "noise_speed": 0.25,       # temporal speed for noise
+            "max_disp_frac": 0.30      # cap for noise displacement as frac of cell_size
+        }
+        if params:
+            p.update(params)
+
+        spin_speed     = p["spin_speed"]
+        twist_amount   = p["twist_amount"]
+        pulse_freq     = max(0.01, p["pulse_freq"])
+        pulse_strength = p["pulse_strength"]
+        pulse_rad_pow  = max(0.0, p["pulse_rad_pow"])
+        noise_amount   = max(0.0, min(1.0, p["noise_amount"]))
+        noise_scale    = p["noise_scale"]
+        noise_speed    = p["noise_speed"]
+        max_disp_frac  = p["max_disp_frac"]
+
+        # Stable per-cell noise offsets
+        if "noise_ox" not in p:
+            p["noise_ox"] = random.uniform(0, 1000)
+            p["noise_oy"] = random.uniform(0, 1000)
+        ox, oy = p["noise_ox"], p["noise_oy"]
+
+        # ---------- Polar coords ----------
+        dx, dy = x - cx, y - cy
+        r = math.hypot(dx, dy)
+        if r == 0:
+            return (x, y, 0.0)
+
+        theta = math.atan2(dy, dx)  # [-pi, pi]
+        if theta < 0:
+            theta += 2 * math.pi     # [0, 2pi)
+
+        # ---------- Spiral twist ----------
+        # radial grows from center to corner-diagonal
+        max_r = math.hypot(cx, cy)
+        radial = min(1.0, r / (max_r + 1e-6))
+        twist = twist_amount * distortion_strength * radial  # base spiral warp
+
+        # ---------- Pulse on ANGLE + Spin reversal ----------
+        # phase: 0..2pi every pulse
+        phase = 2 * math.pi * pulse_freq * time
+
+        # Smooth "flip": use sin(phase) as an integrated spin term.
+        # This produces spin that moves one way, then reverses halfway (phase=pi).
+        # It’s smooth (no discontinuity) and hits zero velocity at the turning points.
+        spin = (2 * math.pi * spin_speed) * math.sin(phase) * distortion_strength
+
+        # Pulse envelope 0..1 (ease-in-out via cosine). Drives *angle* displacement.
+        pulse_env = 0.5 * (1.0 - math.cos(phase))  # 0 at start, 1 mid-pulse, 0 end
+        angle_pulse = (
+            pulse_strength
+            * distortion_strength
+            * (radial ** pulse_rad_pow)
+            * pulse_env
+        )
+
+        # Total new angle
+        new_theta = theta + twist + spin + angle_pulse
+
+        # Keep radius (pulse only affects angle)
+        base_new_x = cx + math.cos(new_theta) * r
+        base_new_y = cy + math.sin(new_theta) * r
+
+        # ---------- Micro-noise (subtle jelly to avoid too-clean bands) ----------
+        def n2(px, py, tt):
+            return (
+                math.sin(px) * math.cos(py * 1.31)
+                + math.sin(px * 0.7 + tt) * math.cos(py * 0.9 - tt * 1.1)
+            )
+
+        tt = time * noise_speed
+        px = (base_new_x + ox) * noise_scale
+        py = (base_new_y + oy) * noise_scale
+
+        nx = n2(px, py, tt) * 0.7 + n2(px * 2.0, py * 2.0, tt * 1.7) * 0.25 + n2(px * 4.0, py * 4.0, tt * 2.5) * 0.08
+        ny = n2(py + 5.2, px - 3.7, tt + 1.3) * 0.7 + n2(py * 2.0 + 5.2, px * 2.0 - 3.7, tt * 1.7) * 0.25 + n2(py * 4.0 + 5.2, px * 4.0 - 3.7, tt * 2.5) * 0.08
+
+        mag = math.hypot(nx, ny)
+        if mag > 1e-6:
+            nx /= mag
+            ny /= mag
+
+        max_offset = cell_size * max_disp_frac * noise_amount * distortion_strength
+        new_x = base_new_x + nx * max_offset
+        new_y = base_new_y + ny * max_offset
+
+        # ---------- Rotation of the square ----------
+        # Tie to instantaneous angular motion: base twist + spin rate proxy (cos phase ~ d/dt sin)
+        # plus a touch of pulse envelope.
+        rotation = (
+            0.18 * twist
+            + 0.14 * (2 * math.pi * spin_speed) * math.cos(phase) * distortion_strength
+            + 0.12 * angle_pulse
+        )
+
+        return (new_x, new_y, rotation)
+
 
         
     @staticmethod
@@ -1340,6 +1467,10 @@ class DistortionEngine:
                 )
             elif distortion_fn == DistortionType.KALEIDOSCOPE_TWIST.value:
                 pos = DistortionEngine.apply_distortion_kaleidoscope_twist(
+                    base_pos, params, cell_size, distortion_strength, time, canvas_size
+                )
+            elif distortion_fn == DistortionType.HYPNO_SPIRAL_PULSE.value:
+                pos = DistortionEngine.apply_distortion_hypno_spiral_pulse(
                     base_pos, params, cell_size, distortion_strength, time, canvas_size
                 )
             else:

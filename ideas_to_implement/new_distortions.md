@@ -76,7 +76,7 @@ Effect: Edges split into rainbow fringes that shift over time.
 
 Twist: Vary offsets radially for a “sunburst” prism look.
 
-4. Hypno Spiral Pulse
+4. Hypno Spiral Pulse ✅
 Idea: Spiral Warp + Pulse, but the pulse affects angle instead of radius.
 
 Effect: Feels like the entire spiral is breathing and twisting at the same time, pulling you in.

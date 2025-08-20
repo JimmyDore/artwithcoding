@@ -75,7 +75,7 @@ def fullscreen_demo():
         dimension=32, 
         cell_size=20, 
         distortion_strength=1, 
-        distortion_fn="circular",
+        distortion_fn="hypno_spiral_pulse",
         color_scheme="candy_shop", 
         color_animation=True,
         fullscreen=False,

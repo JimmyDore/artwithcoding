@@ -28,6 +28,8 @@ class DistortionType(Enum):
     FRACTAL_NOISE = "fractal_noise"
     MOIRE = "moire"
     KALEIDOSCOPE_TWIST = "kaleidoscope_twist"
+    HYPNO_SPIRAL_PULSE = "hypno_spiral_pulse"
+
 
 
 class ColorScheme(Enum):
